@@ -19,14 +19,16 @@ export function LayoutDemo() {
   const [containerHeight, setContainerHeight] = useState(400);
   const [selectedPreset, setSelectedPreset] = useState("wrappedRow");
   const [containerCss, setContainerCss] = useState(
-    flexPresets.wrappedRow.container
+    flexPresets.wrappedRowAlignStart.container
   );
-  const [childCss, setChildCss] = useState(flexPresets.wrappedRow.child);
+  const [childCss, setChildCss] = useState(
+    flexPresets.wrappedRowAlignStart.child
+  );
 
   // Shape configuration (inputs)
-  const SHAPE_WIDTH = 50;
-  const SHAPE_HEIGHT = 50;
-  const [shapeCount, setShapeCount] = useState(100);
+  const [shapeWidth, setShapeWidth] = useState(50);
+  const [shapeHeight, setShapeHeight] = useState(50);
+  const [shapeCount, setShapeCount] = useState<number | undefined>(16);
 
   // Camera state for panning and zooming
   const [cameraX, setCameraX] = useState(0);
@@ -42,15 +44,15 @@ export function LayoutDemo() {
   // Generate shapes from count (computed)
   const shapes = useMemo<Shape[]>(() => {
     const newShapes: Shape[] = [];
-    for (let i = 0; i < shapeCount; i++) {
+    for (let i = 0; i < (shapeCount || 0); i++) {
       newShapes.push({
         id: `shape-${i + 1}`,
-        width: SHAPE_WIDTH,
-        height: SHAPE_HEIGHT,
+        width: shapeWidth,
+        height: shapeHeight,
       });
     }
     return newShapes;
-  }, [shapeCount, SHAPE_WIDTH, SHAPE_HEIGHT]);
+  }, [shapeCount, shapeWidth, shapeHeight]);
 
   // Calculate positioned shapes (computed output)
   const { positionedShapes, calculationTime, actualHeight } = useMemo(() => {
@@ -142,6 +144,7 @@ export function LayoutDemo() {
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
+    e.stopPropagation();
 
     const viewport = viewportRef.current;
     if (!viewport) return;
@@ -189,175 +192,15 @@ export function LayoutDemo() {
   }));
 
   return (
-    <div className="p-5 font-sans text-black max-w-7xl mx-auto">
+    <div className="p-10 font-sans text-black flex flex-col gap-5">
       <h1 className="text-3xl font-bold">CSS Layout Engine Demo</h1>
-      <p className="text-gray-700 mb-6">
-        Test CSS-based positioning for canvas shapes using flexbox layouts
-      </p>
 
-      {/* Controls Section */}
-      <div className="flex gap-5 flex-wrap mb-8">
-        {/* Container Settings */}
-        <div className="flex-1 min-w-[300px]">
-          <h2 className="text-xl font-semibold mb-4">Container Settings</h2>
-
-          <div style={{ marginBottom: "15px" }}>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "5px",
-                fontWeight: "bold",
-                color: "#000",
-              }}
-            >
-              Width: {containerWidth}px
-            </label>
-            <input
-              type="range"
-              min="200"
-              max="1200"
-              value={containerWidth}
-              onChange={(e) => setContainerWidth(Number(e.target.value))}
-              style={{ width: "100%" }}
-            />
-          </div>
-
-          <div style={{ marginBottom: "15px" }}>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "5px",
-                fontWeight: "bold",
-                color: "#000",
-              }}
-            >
-              Min Height: {containerHeight}px
-            </label>
-            <input
-              type="range"
-              min="200"
-              max="2000"
-              value={containerHeight}
-              onChange={(e) => setContainerHeight(Number(e.target.value))}
-              style={{ width: "100%" }}
-            />
-            <p style={{ fontSize: "12px", color: "#666", margin: "5px 0 0 0" }}>
-              Canvas expands vertically to fit all shapes
-            </p>
-          </div>
-
-          <div style={{ marginBottom: "15px" }}>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "5px",
-                fontWeight: "bold",
-                color: "#000",
-              }}
-            >
-              CSS Preset
-            </label>
-            <select
-              value={selectedPreset}
-              onChange={(e) => handlePresetChange(e.target.value)}
-              style={{ width: "100%", padding: "5px", color: "#000" }}
-            >
-              {presetOptions.map(({ label, value }) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div style={{ marginBottom: "15px" }}>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "5px",
-                fontWeight: "bold",
-                color: "#000",
-              }}
-            >
-              Custom Container CSS
-            </label>
-            <textarea
-              value={containerCss}
-              onChange={(e) => setContainerCss(e.target.value)}
-              style={{
-                width: "100%",
-                height: "60px",
-                fontFamily: "monospace",
-                fontSize: "12px",
-                padding: "5px",
-                color: "#000",
-              }}
-            />
-          </div>
-
-          <div style={{ marginBottom: "15px" }}>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "5px",
-                fontWeight: "bold",
-                color: "#000",
-              }}
-            >
-              Custom Child CSS
-            </label>
-            <textarea
-              value={childCss}
-              onChange={(e) => setChildCss(e.target.value)}
-              placeholder="e.g., align-self: flex-end; margin: 5px;"
-              style={{
-                width: "100%",
-                height: "60px",
-                fontFamily: "monospace",
-                fontSize: "12px",
-                padding: "5px",
-                color: "#000",
-              }}
-            />
-            <p style={{ fontSize: "12px", color: "#666", margin: "5px 0 0 0" }}>
-              Applied to each shape element
-            </p>
-          </div>
-        </div>
-
+      <div className="border shadow-lg p-3">
         {/* Shapes Panel */}
         <div style={{ flex: "1", minWidth: "300px" }}>
-          <h2 style={{ color: "#000" }}>Shapes</h2>
+          <h2 className="text-xl font-semibold mb-4">Item Count</h2>
 
-          <div style={{ marginBottom: "15px" }}>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "5px",
-                fontWeight: "bold",
-                color: "#000",
-              }}
-            >
-              Shape Size: {SHAPE_WIDTH}×{SHAPE_HEIGHT}px
-            </label>
-            <p
-              style={{ fontSize: "12px", color: "#666", margin: "0 0 10px 0" }}
-            >
-              All shapes are uniform size
-            </p>
-          </div>
-
-          <div style={{ marginBottom: "15px" }}>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "5px",
-                fontWeight: "bold",
-                color: "#000",
-              }}
-            >
-              Shape Count
-            </label>
+          <div>
             <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
               <button
                 onClick={() => setShapeCount(100)}
@@ -405,9 +248,14 @@ export function LayoutDemo() {
             <input
               type="number"
               value={shapeCount}
-              onChange={(e) =>
-                setShapeCount(Math.max(1, parseInt(e.target.value) || 1))
-              }
+              onChange={(e) => {
+                const isNan = isNaN(parseInt(e.target.value));
+                if (!isNan) {
+                  setShapeCount(Math.max(0, parseInt(e.target.value)));
+                } else {
+                  setShapeCount(undefined);
+                }
+              }}
               min="1"
               max="100000"
               style={{
@@ -421,23 +269,126 @@ export function LayoutDemo() {
               placeholder="Enter custom count..."
             />
           </div>
-
-          {shapes.length > 0 && calculationTime > 0 && (
-            <div
-              style={{
-                marginTop: "15px",
-                padding: "10px",
-                background: "#f8f9fa",
-                borderRadius: "4px",
-              }}
-            >
-              <p style={{ margin: 0, fontSize: "12px", color: "#666" }}>
-                <strong>{shapes.length.toLocaleString()} shapes</strong> •
-                Layout calculated in {calculationTime.toFixed(2)}ms
-              </p>
-            </div>
-          )}
         </div>
+      </div>
+
+      {/* Controls Section */}
+      <div className="flex flex-col gap-5 flex-wrap border shadow-lg p-3">
+        {/* Container Settings */}
+        <div className="flex-1 min-w-[300px]">
+          <h2 className="text-xl font-semibold">Template Layout Inputs</h2>
+        </div>
+        <div>
+          <label
+            style={{
+              display: "block",
+              marginBottom: "5px",
+              fontWeight: "bold",
+              color: "#000",
+            }}
+          >
+            Preset
+          </label>
+          <select
+            className="border"
+            value={selectedPreset}
+            onChange={(e) => handlePresetChange(e.target.value)}
+          >
+            {presetOptions.map(({ label, value }) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label>Container </label>
+          <div className="flex w-full gap-2">
+            <div>
+              <label className="text-sm">Width: {containerWidth}px</label>
+              <input
+                type="range"
+                min="200"
+                max="1200"
+                value={containerWidth}
+                onChange={(e) => setContainerWidth(Number(e.target.value))}
+                style={{ width: "100%" }}
+              />
+            </div>
+            <div className="flex w-full gap-2">
+              <div>
+                <label className="text-sm">Height: {containerHeight}px</label>
+                <input
+                  type="range"
+                  min="200"
+                  max="1200"
+                  value={containerHeight}
+                  onChange={(e) => setContainerHeight(Number(e.target.value))}
+                  style={{ width: "100%" }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <textarea
+            value={containerCss}
+            onChange={(e) => setContainerCss(e.target.value)}
+            className="border"
+            style={{
+              width: "100%",
+              height: "60px",
+              fontFamily: "monospace",
+              fontSize: "12px",
+              padding: "5px",
+              color: "#000",
+            }}
+          />
+        </div>
+
+        <div>
+          <label>Card</label>
+          <div className="flex">
+            <label className="flex flex-col">
+              width: {shapeWidth}px
+              <input
+                type="range"
+                className="border"
+                value={shapeWidth}
+                onChange={(e) => setShapeWidth(Number(e.target.value))}
+              />
+            </label>
+            <label className="flex flex-col">
+              height: {shapeHeight}px
+              <input
+                type="range"
+                className="border"
+                value={shapeHeight}
+                onChange={(e) => setShapeHeight(Number(e.target.value))}
+              />
+            </label>
+          </div>
+          <textarea
+            className="border"
+            value={childCss}
+            onChange={(e) => setChildCss(e.target.value)}
+            placeholder="e.g., align-self: flex-end; margin: 5px;"
+            style={{
+              width: "100%",
+              height: "60px",
+              fontFamily: "monospace",
+              fontSize: "12px",
+              padding: "5px",
+              color: "#000",
+            }}
+          />
+        </div>
+      </div>
+
+      <div>
+        <p style={{ margin: 0, fontSize: "12px", color: "#666" }}>
+          <strong>{shapes.length.toLocaleString()} shapes</strong> • Layout
+          calculated in {calculationTime.toFixed(2)}ms
+        </p>
       </div>
 
       {/* Whiteboard Section - Full Width Below Controls */}
@@ -496,12 +447,13 @@ export function LayoutDemo() {
           <div
             style={{
               position: "absolute",
-              width: "100%",
-              height: "100%",
+              width: containerWidth,
+              height: containerHeight,
               transform: `translate(${cameraX}px, ${cameraY}px) scale(${zoom})`,
               transformOrigin: "0 0",
               transition: isDragging ? "none" : "transform 0.1s ease-out",
             }}
+            className="border h-full"
           >
             {/* Render shapes as absolutely positioned divs */}
             {positionedShapes.map((shape) => {
