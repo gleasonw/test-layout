@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
-  getPositionedShapesWithWarnings,
+  getPositionedShapes,
   flexPresets,
   type Shape,
   type ContainerBox,
   type PositionedShape,
 } from "./layoutEngine";
+import React from "react";
 
 // Generate random color for each shape
 const generateColor = (id: string): string => {
@@ -58,12 +59,11 @@ export function LayoutDemo() {
   }, [shapeCount, shapeWidth, shapeHeight]);
 
   // Calculate positioned shapes (computed output)
-  const { positionedShapes, calculationTime, actualHeight } = useMemo(() => {
+  const { positionedShapes, calculationTime } = useMemo(() => {
     if (shapes.length === 0) {
       return {
         positionedShapes: [],
         calculationTime: 0,
-        actualHeight: containerHeight,
       };
     }
 
@@ -74,47 +74,19 @@ export function LayoutDemo() {
     };
 
     const startTime = performance.now();
-    const result = getPositionedShapesWithWarnings(
+    const positionedShapes = getPositionedShapes({
       shapes,
       containerBox,
       containerCss,
       shapeDimensionConstraint,
-      childCss || undefined
-    );
+      childCss: childCss || undefined,
+    });
     const endTime = performance.now();
 
     const calcTime = endTime - startTime;
 
-    // Calculate actual height needed based on positioned shapes
-    if (result.shapes.length > 0) {
-      const maxY = Math.max(...result.shapes.map((s) => s.y + s.height));
-      // If content overflows, recalculate with larger height
-      if (maxY > containerHeight) {
-        const newHeight = Math.ceil(maxY + 20);
-        const expandedBox: ContainerBox = {
-          width: containerWidth,
-          height: newHeight,
-        };
-        const expandedResult = getPositionedShapesWithWarnings(
-          shapes,
-          expandedBox,
-          containerCss,
-          shapeDimensionConstraint,
-          childCss || undefined
-        );
-        const expandedMaxY = Math.max(
-          ...expandedResult.shapes.map((s) => s.y + s.height)
-        );
-        return {
-          positionedShapes: expandedResult.shapes,
-          calculationTime: calcTime,
-          actualHeight: Math.ceil(expandedMaxY + 20),
-        };
-      }
-    }
-
     return {
-      positionedShapes: result.shapes,
+      positionedShapes,
       calculationTime: calcTime,
       actualHeight: containerHeight,
     };
@@ -154,39 +126,62 @@ export function LayoutDemo() {
     setDragStart(null);
   };
 
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleWheel = React.useCallback(
+    (e: WheelEvent) => {
+      e.preventDefault();
 
+      const viewport = viewportRef.current;
+      if (!viewport) return;
+
+      // Mouse position relative to viewport
+      const rect = viewport.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      // Zoom factor
+      const zoomDelta = e.deltaY > 0 ? 0.97 : 1.03;
+      const newZoom = Math.max(0.1, Math.min(5, zoom * zoomDelta));
+
+      // World position under mouse (before zoom)
+      const worldX = (mouseX - cameraX) / zoom;
+      const worldY = (mouseY - cameraY) / zoom;
+
+      // Reposition camera so the same world point stays under the mouse
+      const newCameraX = mouseX - worldX * newZoom;
+      const newCameraY = mouseY - worldY * newZoom;
+
+      setZoom(newZoom);
+      setCameraX(newCameraX);
+      setCameraY(newCameraY);
+    },
+    [zoom, cameraX, cameraY]
+  );
+
+  useEffect(() => {
+    viewportRef.current?.addEventListener("wheel", handleWheel, {
+      passive: false,
+    });
+    return () =>
+      viewportRef.current?.removeEventListener("wheel", handleWheel, {
+        passive: false,
+      });
+  }, [handleWheel]);
+
+  const resetCamera = () => {
     const viewport = viewportRef.current;
     if (!viewport) return;
 
-    // Get mouse position relative to viewport
-    const rect = viewport.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    const targetZoom = 0.5;
 
-    // Calculate zoom change (negative deltaY = zoom in, positive = zoom out)
-    const zoomDelta = e.deltaY > 0 ? 0.97 : 1.03;
-    const newZoom = Math.max(0.1, Math.min(5, zoom * zoomDelta));
+    const viewportWidth = viewport.clientWidth;
+    const viewportHeight = viewport.clientHeight;
 
-    // Calculate the point in world coordinates before zoom
-    const worldX = (mouseX - cameraX) / zoom;
-    const worldY = (mouseY - cameraY) / zoom;
+    const cameraX = viewportWidth / 2 - (containerWidth * targetZoom) / 2;
+    const cameraY = viewportHeight / 2 - (containerHeight * targetZoom) / 2;
 
-    // Calculate new camera position to keep mouse point fixed
-    const newCameraX = mouseX - worldX * newZoom;
-    const newCameraY = mouseY - worldY * newZoom;
-
-    setZoom(newZoom);
-    setCameraX(newCameraX);
-    setCameraY(newCameraY);
-  };
-
-  const resetCamera = () => {
-    setCameraX(containerWidth / 2);
-    setCameraY(containerHeight / 2);
-    setZoom(0.5);
+    setZoom(targetZoom);
+    setCameraX(cameraX);
+    setCameraY(cameraY);
   };
 
   // Preset selection handler
@@ -197,6 +192,8 @@ export function LayoutDemo() {
     setChildCss(preset.child);
     if (presetKey === "autoExpandingCards") {
       setShapeDimensionConstraint("variable");
+    } else {
+      setShapeDimensionConstraint("fixed");
     }
   };
 
@@ -212,16 +209,16 @@ export function LayoutDemo() {
         <h1 className="text-3xl font-bold">CSS Layout Engine Demo</h1>
         <p className="">
           The idea here is to use css and an invisible DOM element to get shape
-          positions for us, rather than computing layout ourselves. Performance
-          seems really good, and we gain an enormous amount of flexibility to
-          meet user requests (the full CSS spec!)
+          positions for us, rather than computing layout ourselves. The
+          advantage is we don't have to handle any layout complexity ourselves.
+          Performance seems good.
         </p>
         <p>
-          This CSS approach will solve the use case of "import template into the
-          whiteboard". With templates, all we have is an array of data, and then
-          card/slide dimensions. Normally we rely on the JSX and css spec to
-          handle the positioning, but if we're moving items in bulk into the
-          whiteboard, we'll need to pull the CSS from the template shapes
+          For now, the CSS approach could solve the use case of "import template
+          into the whiteboard". With templates, all we have is an array of data,
+          and then card/slide dimensions. Normally we rely on the JSX and css
+          spec to handle the positioning, but if we're moving items in bulk into
+          the whiteboard, we'll need to pull the CSS from the template shapes
           (WrappingRow, DistinctFieldValues) and then reapply them with the
           logic in this demo (generatePositionsFromCSS)
         </p>
@@ -501,7 +498,6 @@ export function LayoutDemo() {
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseLeave}
-            onWheel={handleWheel}
             style={{
               width: "100%",
               height: "600px",

@@ -38,43 +38,29 @@ export interface LayoutResult {
  * @param childCss - Optional CSS string to apply to each child element
  * @returns Array of shapes with calculated x, y positions
  */
-export function getPositionedShapes(
-  shapes: Shape[],
-  containerBox: ContainerBox,
-  containerCss: string,
-  shapeDimensionConstraint: "fixed" | "variable",
-  childCss?: string
-): PositionedShape[] {
-  const result = getPositionedShapesWithWarnings(
+export function getPositionedShapes(args: {
+  shapes: Shape[];
+  containerBox: ContainerBox;
+  containerCss: string;
+  shapeDimensionConstraint: "fixed" | "variable";
+  childCss?: string;
+}): PositionedShape[] {
+  const warnings: string[] = [];
+  const {
     shapes,
     containerBox,
     containerCss,
+    childCss,
     shapeDimensionConstraint,
-    childCss
-  );
-
-  return result.shapes;
-}
-
-/**
- * Extended version that returns warnings alongside positioned shapes
- */
-export function getPositionedShapesWithWarnings(
-  shapes: Shape[],
-  containerBox: ContainerBox,
-  containerCss: string,
-  shapeDimensionConstraint: "fixed" | "variable",
-  childCss?: string
-): LayoutResult {
-  const warnings: string[] = [];
+  } = args;
 
   // Validation
   if (!shapes || shapes.length === 0) {
-    return { shapes: [] };
+    return [];
   }
 
   if (containerBox.width <= 0 || containerBox.height <= 0) {
-    return { shapes: [] };
+    return [];
   }
 
   // Create detached container
@@ -156,9 +142,7 @@ export function getPositionedShapesWithWarnings(
   // Cleanup - remove from DOM
   document.body.removeChild(container);
 
-  return {
-    shapes: positionedShapes,
-  };
+  return positionedShapes;
 }
 
 /**
