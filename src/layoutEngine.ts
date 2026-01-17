@@ -216,24 +216,4 @@ export const flexPresets = {
       "display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 10px;",
     child: "",
   },
-  centeredColumn: {
-    container:
-      "display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px;",
-    child: "",
-  },
-  spaceBetween: {
-    container:
-      "display: flex; flex-direction: row; justify-content: space-between; align-items: center;",
-    child: "",
-  },
-  spaceAround: {
-    container:
-      "display: flex; flex-direction: row; justify-content: space-around; align-items: center;",
-    child: "",
-  },
-  spaceEvenly: {
-    container:
-      "display: flex; flex-direction: row; justify-content: space-evenly; align-items: center;",
-    child: "",
-  },
 };
