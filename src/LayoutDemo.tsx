@@ -29,6 +29,9 @@ export function LayoutDemo() {
   const [shapeWidth, setShapeWidth] = useState(50);
   const [shapeHeight, setShapeHeight] = useState(50);
   const [shapeCount, setShapeCount] = useState<number | undefined>(16);
+  const [shapeDimensionConstraint, setShapeDimensionConstraint] = useState<
+    "fixed" | "variable"
+  >("fixed");
 
   // Camera state for panning and zooming
   const [cameraX, setCameraX] = useState(300);
@@ -75,6 +78,7 @@ export function LayoutDemo() {
       shapes,
       containerBox,
       containerCss,
+      shapeDimensionConstraint,
       childCss || undefined
     );
     const endTime = performance.now();
@@ -95,6 +99,7 @@ export function LayoutDemo() {
           shapes,
           expandedBox,
           containerCss,
+          shapeDimensionConstraint,
           childCss || undefined
         );
         const expandedMaxY = Math.max(
@@ -113,7 +118,14 @@ export function LayoutDemo() {
       calculationTime: calcTime,
       actualHeight: containerHeight,
     };
-  }, [shapes, containerWidth, containerHeight, containerCss, childCss]);
+  }, [
+    shapes,
+    containerWidth,
+    containerHeight,
+    containerCss,
+    childCss,
+    shapeDimensionConstraint,
+  ]);
 
   // Pan interaction handlers
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -178,11 +190,14 @@ export function LayoutDemo() {
   };
 
   // Preset selection handler
-  const handlePresetChange = (presetKey: string) => {
+  const handlePresetChange = (presetKey: keyof typeof flexPresets) => {
     setSelectedPreset(presetKey);
     const preset = flexPresets[presetKey as keyof typeof flexPresets];
     setContainerCss(preset.container);
     setChildCss(preset.child);
+    if (presetKey === "autoExpandingCards") {
+      setShapeDimensionConstraint("variable");
+    }
   };
 
   // Preset selection
@@ -306,7 +321,7 @@ export function LayoutDemo() {
           </div>
 
           {/* Controls Section */}
-          <div className="flex flex-col gap-5 flex-wrap border shadow-lg p-3">
+          <div className="flex flex-col gap-6 flex-wrap border shadow-lg p-3">
             {/* Container Settings */}
             <div className="flex-1 min-w-[300px]">
               <h2 className="text-xl font-semibold">Template Layout Inputs</h2>
@@ -325,7 +340,9 @@ export function LayoutDemo() {
               <select
                 className="border"
                 value={selectedPreset}
-                onChange={(e) => handlePresetChange(e.target.value)}
+                onChange={(e) =>
+                  handlePresetChange(e.target.value as keyof typeof flexPresets)
+                }
               >
                 {presetOptions.map(({ label, value }) => (
                   <option key={value} value={value}>
@@ -382,28 +399,45 @@ export function LayoutDemo() {
               />
             </div>
 
-            <div>
+            <div className="flex flex-col gap-2">
               <label>Card</label>
-              <div className="flex">
-                <label className="flex flex-col">
-                  width: {shapeWidth}px
-                  <input
-                    type="range"
-                    className="border"
-                    value={shapeWidth}
-                    onChange={(e) => setShapeWidth(Number(e.target.value))}
-                  />
-                </label>
-                <label className="flex flex-col">
-                  height: {shapeHeight}px
-                  <input
-                    type="range"
-                    className="border"
-                    value={shapeHeight}
-                    onChange={(e) => setShapeHeight(Number(e.target.value))}
-                  />
-                </label>
-              </div>
+              <button
+                className="border p-1 hover:bg-gray-100 cursor-pointer"
+                onClick={() => {
+                  if (shapeDimensionConstraint === "fixed") {
+                    setShapeDimensionConstraint("variable");
+                  } else {
+                    setShapeDimensionConstraint("fixed");
+                  }
+                }}
+              >
+                {shapeDimensionConstraint === "fixed"
+                  ? "Fixed dimensions"
+                  : "Variable dimensions"}
+              </button>
+              {shapeDimensionConstraint === "fixed" && (
+                <div className="flex">
+                  <label className="flex flex-col">
+                    width: {shapeWidth}px
+                    <input
+                      type="range"
+                      className="border"
+                      value={shapeWidth}
+                      onChange={(e) => setShapeWidth(Number(e.target.value))}
+                    />
+                  </label>
+                  <label className="flex flex-col">
+                    height: {shapeHeight}px
+                    <input
+                      type="range"
+                      className="border"
+                      value={shapeHeight}
+                      onChange={(e) => setShapeHeight(Number(e.target.value))}
+                    />
+                  </label>
+                </div>
+              )}
+
               <textarea
                 className="border"
                 value={childCss}

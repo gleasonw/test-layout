@@ -27,7 +27,6 @@ export interface ContainerBox {
 
 export interface LayoutResult {
   shapes: PositionedShape[];
-  warnings: string[];
 }
 
 /**
@@ -43,18 +42,15 @@ export function getPositionedShapes(
   shapes: Shape[],
   containerBox: ContainerBox,
   containerCss: string,
+  shapeDimensionConstraint: "fixed" | "variable",
   childCss?: string
 ): PositionedShape[] {
   const result = getPositionedShapesWithWarnings(
     shapes,
     containerBox,
     containerCss,
+    shapeDimensionConstraint,
     childCss
-  );
-
-  // Log warnings to console
-  result.warnings.forEach((warning) =>
-    console.warn("[Layout Engine]", warning)
   );
 
   return result.shapes;
@@ -67,18 +63,18 @@ export function getPositionedShapesWithWarnings(
   shapes: Shape[],
   containerBox: ContainerBox,
   containerCss: string,
+  shapeDimensionConstraint: "fixed" | "variable",
   childCss?: string
 ): LayoutResult {
   const warnings: string[] = [];
 
   // Validation
   if (!shapes || shapes.length === 0) {
-    return { shapes: [], warnings };
+    return { shapes: [] };
   }
 
   if (containerBox.width <= 0 || containerBox.height <= 0) {
-    warnings.push("Container has zero or negative dimensions");
-    return { shapes: [], warnings };
+    return { shapes: [] };
   }
 
   // Create detached container
@@ -102,21 +98,19 @@ export function getPositionedShapesWithWarnings(
 
   shapes.forEach((shape) => {
     const element = document.createElement("div");
-    element.style.width = `${shape.width}px`;
-    element.style.height = `${shape.height}px`;
+    if (shapeDimensionConstraint === "fixed") {
+      element.style.width = `${shape.width}px`;
+      element.style.height = `${shape.height}px`;
+      element.style.flexShrink = "0"; // Prevent shapes from shrinking
+      element.style.flexGrow = "0"; // Prevent shapes from growing
+    }
     element.style.boxSizing = "border-box";
-    element.style.flexShrink = "0"; // Prevent shapes from shrinking
-    element.style.flexGrow = "0"; // Prevent shapes from growing
 
     // Apply child CSS if provided
     if (childCss) {
       element.style.cssText += childCss;
       // Re-apply dimensions to ensure they're not overridden
-      element.style.width = `${shape.width}px`;
-      element.style.height = `${shape.height}px`;
       element.style.boxSizing = "border-box";
-      element.style.flexShrink = "0";
-      element.style.flexGrow = "0";
     }
 
     // Store reference to original shape
@@ -144,12 +138,17 @@ export function getPositionedShapesWithWarnings(
       const x = rect.left - containerRect.left;
       const y = rect.top - containerRect.top;
 
+      const width =
+        shapeDimensionConstraint === "fixed" ? shape.width : rect.width;
+      const height =
+        shapeDimensionConstraint === "fixed" ? shape.height : rect.height;
+
       return {
         id: shape.id,
         x,
         y,
-        width: shape.width,
-        height: shape.height,
+        width,
+        height,
       };
     }
   );
@@ -157,32 +156,8 @@ export function getPositionedShapesWithWarnings(
   // Cleanup - remove from DOM
   document.body.removeChild(container);
 
-  // Check for overflow
-  positionedShapes.forEach((shape) => {
-    const overflowRight = shape.x + shape.width > containerBox.width;
-    const overflowBottom = shape.y + shape.height > containerBox.height;
-    const overflowLeft = shape.x < 0;
-    const overflowTop = shape.y < 0;
-
-    if (overflowRight || overflowBottom || overflowLeft || overflowTop) {
-      const directions = [];
-      if (overflowLeft) directions.push("left");
-      if (overflowTop) directions.push("top");
-      if (overflowRight) directions.push("right");
-      if (overflowBottom) directions.push("bottom");
-
-      warnings.push(
-        `Shape "${shape.id}" overflows container (${directions.join(", ")}): ` +
-          `position=(${shape.x.toFixed(1)}, ${shape.y.toFixed(1)}), ` +
-          `size=(${shape.width}×${shape.height}), ` +
-          `container=(${containerBox.width}×${containerBox.height})`
-      );
-    }
-  });
-
   return {
     shapes: positionedShapes,
-    warnings,
   };
 }
 
@@ -200,6 +175,11 @@ export const flexPresets = {
     container:
       "display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px;",
     child: "",
+  },
+  autoExpandingCards: {
+    container:
+      "display: flex; flex-direction: row; flex-wrap: wrap; gap:10px; align-content: flex-start",
+    child: "flex-grow: 1; min-width: 50px; height: 50px;",
   },
   wrappedRowCentered: {
     container:
