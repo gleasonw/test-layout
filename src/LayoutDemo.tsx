@@ -194,6 +194,27 @@ export function LayoutDemo() {
   return (
     <div className="p-10 font-sans text-black flex flex-col gap-5">
       <h1 className="text-3xl font-bold">CSS Layout Engine Demo</h1>
+      <p className="">
+        The idea here is to use css and an invisible DOM element to get shape
+        positions for us, rather than computing layout ourselves. Performance
+        seems really good, and we gain an enormous amount of flexibility to meet
+        user requests (the full CSS spec!)
+      </p>
+      <p>
+        This CSS approach will solve the use case of "import template into the
+        whiteboard". With templates, all we have is an array of data, and then
+        card/slide dimensions. Normally we rely on the JSX and css spec to
+        handle the positioning, but if we're moving items in bulk into the
+        whiteboard, we'll need to pull the CSS from the template shapes
+        (WrappingRow, DistinctFieldValues) and then reapply them with the logic
+        in this demo (generatePositionsFromCSS)
+      </p>
+      <p>
+        If we wanted to go further and actually expose the CSS to the user in
+        the template manager, the complication for templates is slide splitting.
+        Flex has no idea how to split up data vertically, so we would have to
+        come up with some slicing logic there.
+      </p>
 
       <div className="flex gap-5">
         <div className="flex flex-col gap-5">
