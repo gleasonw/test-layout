@@ -202,10 +202,8 @@ export function LayoutDemo() {
             <div style={{ flex: "1", minWidth: "300px" }}>
               <h2 className="text-xl font-semibold mb-4">Item Count</h2>
 
-              <div>
-                <div
-                  style={{ display: "flex", gap: "10px", marginBottom: "10px" }}
-                >
+              <div className="flex flex-col gap-2">
+                <div style={{ display: "flex", gap: "10px" }}>
                   <button
                     onClick={() => setShapeCount(100)}
                     style={{
@@ -272,6 +270,14 @@ export function LayoutDemo() {
                   }}
                   placeholder="Enter custom count..."
                 />
+                <button
+                  className="p-2 text-center bg-black w-full text-white"
+                  onClick={() =>
+                    setShapeCount(shapeCount !== undefined ? shapeCount + 1 : 1)
+                  }
+                >
+                  Add a shape
+                </button>
               </div>
             </div>
           </div>
