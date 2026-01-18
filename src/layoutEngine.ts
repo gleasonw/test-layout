@@ -160,11 +160,6 @@ export const flexPresets = {
       "display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; align-content: flex-start;",
     child: "",
   },
-  wrappedRowAlignFull: {
-    container:
-      "display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px;",
-    child: "",
-  },
   autoExpandingCards: {
     container:
       "display: flex; flex-direction: row; flex-wrap: wrap; gap:10px; align-content: flex-start",
