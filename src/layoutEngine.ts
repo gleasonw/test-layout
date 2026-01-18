@@ -179,17 +179,17 @@ export const flexPresets = {
   rowResponsiveParents: {
     container:
       "display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; align-items: flex-start;",
-    child: "",
+    child: "padding: 5px;",
   },
   columnResponsiveParents: {
     container:
       "display: flex; flex-direction: column; gap: 15px; align-items: flex-start;",
-    child: "",
+    child: "padding: 5px;",
   },
   rowOverlappingChildren: {
     container:
       "display: flex; flex-direction: row; gap: 12px; flex-wrap: wrap; align-items: flex-start;",
-    child: "margin-left: -8px;",
+    child: "margin-left: -20px;",
   },
   columnStack: {
     container:

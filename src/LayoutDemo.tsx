@@ -350,12 +350,12 @@ export function LayoutDemo() {
       // For overlapping preset, set up parent card CSS with padding
       if (presetKey === "rowOverlappingChildren") {
         setParentCardCss(
-          "display: flex; flex-direction: row; gap: 5px; flex-wrap: wrap; padding: 15px;"
+          "display: flex; flex-direction: row; gap: 5px; flex-wrap: wrap; padding: 10px; padding-left: 20px;"
         );
-        setSubCardCss("margin-left: -8px;");
+        setSubCardCss("margin-left: -20px;");
       } else {
         setParentCardCss(
-          "display: flex; flex-direction: row; gap: 5px; flex-wrap: wrap;"
+          "display: flex; flex-direction: row; gap: 5px; flex-wrap: wrap; padding: 5px"
         );
         setSubCardCss("");
       }
