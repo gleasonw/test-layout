@@ -10,6 +10,8 @@ export interface Shape {
   id: string;
   width: number;
   height: number;
+  color?: string;
+  children?: Shape[]; // NEW: Optional nested children for multi-level layouts
 }
 
 export interface PositionedShape {
@@ -18,6 +20,8 @@ export interface PositionedShape {
   y: number;
   width: number;
   height: number;
+  color?: string;
+  children?: PositionedShape[]; // NEW: Positioned children
 }
 
 export interface ContainerBox {
@@ -135,6 +139,7 @@ export function getPositionedShapes(args: {
         y,
         width,
         height,
+        color: shape.color,
       };
     }
   );
@@ -181,3 +186,191 @@ export const flexPresets = {
     child: "",
   },
 };
+
+/**
+ * Multi-level layout engine function (Single-pass)
+ * 
+ * Performs a single layout calculation where parent shapes contain their children
+ * in the DOM during layout, allowing parents to respond to children sizes.
+ * 
+ * @param shapes - Array of shapes that may contain children
+ * @param containerBox - Container dimensions for top-level shapes
+ * @param containerCss - CSS for the main container
+ * @param parentCss - CSS to apply to parent (L1) cards as containers
+ * @param childCss - CSS to apply to child (L2) cards
+ * @param parentDimensionConstraint - Dimension constraint for parent shapes
+ * @param childDimensionConstraint - Dimension constraint for child shapes
+ * @returns Array of positioned shapes with positioned children
+ */
+export function getPositionedShapesWithChildren(args: {
+  shapes: Shape[];
+  containerBox: ContainerBox;
+  containerCss: string;
+  parentCss: string;
+  childCss: string;
+  parentDimensionConstraint: "fixed" | "variable";
+  childDimensionConstraint: "fixed" | "variable";
+}): PositionedShape[] {
+  const {
+    shapes,
+    containerBox,
+    containerCss,
+    parentCss,
+    childCss,
+    parentDimensionConstraint,
+    childDimensionConstraint,
+  } = args;
+
+  // Validation
+  if (!shapes || shapes.length === 0) {
+    return [];
+  }
+
+  if (containerBox.width <= 0 || containerBox.height <= 0) {
+    return [];
+  }
+
+  // Create detached container for top-level layout
+  const container = document.createElement("div");
+
+  // Apply container styles
+  container.style.cssText = containerCss;
+  container.style.position = "absolute";
+  container.style.width = `${containerBox.width}px`;
+  container.style.height = `${containerBox.height}px`;
+  container.style.boxSizing = "border-box";
+
+  // Position off-screen to avoid visual flash
+  container.style.top = "-10000px";
+  container.style.left = "-10000px";
+  container.style.visibility = "hidden";
+  container.style.pointerEvents = "none";
+
+  // Create parent elements with nested children
+  const parentElements: Array<{
+    parentElement: HTMLDivElement;
+    childElements: Array<{ element: HTMLDivElement; shape: Shape }>;
+    shape: Shape;
+  }> = [];
+
+  shapes.forEach((shape) => {
+    const parentElement = document.createElement("div");
+    
+    // Apply parent dimension constraints
+    if (parentDimensionConstraint === "fixed") {
+      parentElement.style.width = `${shape.width}px`;
+      parentElement.style.height = `${shape.height}px`;
+      parentElement.style.flexShrink = "0";
+      parentElement.style.flexGrow = "0";
+    }
+    parentElement.style.boxSizing = "border-box";
+
+    // Apply parent CSS (this makes each parent a container for its children)
+    if (parentCss) {
+      parentElement.style.cssText += parentCss;
+      parentElement.style.boxSizing = "border-box";
+    }
+
+    // Store reference to original shape
+    parentElement.dataset.shapeId = shape.id;
+
+    // If this parent has children, create child elements inside it
+    const childElements: Array<{ element: HTMLDivElement; shape: Shape }> = [];
+    if (shape.children && shape.children.length > 0) {
+      shape.children.forEach((childShape) => {
+        const childElement = document.createElement("div");
+        
+        // Apply child dimension constraints
+        if (childDimensionConstraint === "fixed") {
+          childElement.style.width = `${childShape.width}px`;
+          childElement.style.height = `${childShape.height}px`;
+          childElement.style.flexShrink = "0";
+          childElement.style.flexGrow = "0";
+        }
+        childElement.style.boxSizing = "border-box";
+
+        // Apply child CSS
+        if (childCss) {
+          childElement.style.cssText += childCss;
+          childElement.style.boxSizing = "border-box";
+        }
+
+        childElement.dataset.shapeId = childShape.id;
+        parentElement.appendChild(childElement);
+        childElements.push({ element: childElement, shape: childShape });
+      });
+    }
+
+    container.appendChild(parentElement);
+    parentElements.push({ parentElement, childElements, shape });
+  });
+
+  // Temporarily append to DOM to trigger layout calculation
+  document.body.appendChild(container);
+
+  // Force layout calculation
+  container.offsetHeight; // Trigger reflow
+
+  // Get container's bounding rect for reference
+  const containerRect = container.getBoundingClientRect();
+
+  // Calculate positions for each parent and its children
+  const positionedShapes: PositionedShape[] = parentElements.map(
+    ({ parentElement, childElements, shape }) => {
+      const parentRect = parentElement.getBoundingClientRect();
+
+      // Calculate parent position relative to container
+      const parentX = parentRect.left - containerRect.left;
+      const parentY = parentRect.top - containerRect.top;
+
+      const parentWidth =
+        parentDimensionConstraint === "fixed" ? shape.width : parentRect.width;
+      const parentHeight =
+        parentDimensionConstraint === "fixed" ? shape.height : parentRect.height;
+
+      // Calculate children positions relative to parent
+      const positionedChildren: PositionedShape[] = childElements.map(
+        ({ element, shape: childShape }) => {
+          const childRect = element.getBoundingClientRect();
+
+          // Position relative to parent element
+          const childX = childRect.left - parentRect.left;
+          const childY = childRect.top - parentRect.top;
+
+          const childWidth =
+            childDimensionConstraint === "fixed"
+              ? childShape.width
+              : childRect.width;
+          const childHeight =
+            childDimensionConstraint === "fixed"
+              ? childShape.height
+              : childRect.height;
+
+          return {
+            id: childShape.id,
+            x: childX,
+            y: childY,
+            width: childWidth,
+            height: childHeight,
+            color: childShape.color,
+          };
+        }
+      );
+
+      return {
+        id: shape.id,
+        x: parentX,
+        y: parentY,
+        width: parentWidth,
+        height: parentHeight,
+        color: shape.color,
+        children: positionedChildren.length > 0 ? positionedChildren : undefined,
+      };
+    }
+  );
+
+  // Cleanup - remove from DOM
+  document.body.removeChild(container);
+
+  return positionedShapes;
+}

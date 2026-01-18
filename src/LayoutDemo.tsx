@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
   getPositionedShapes,
+  getPositionedShapesWithChildren,
   flexPresets,
   type Shape,
   type ContainerBox,
@@ -13,6 +14,11 @@ import { splitShapesIntoBoxes, type NormalizedSlide } from "@/splitEngine";
 const generateColor = (id: string): string => {
   const hue = parseInt(id.replace("shape-", "")) * 137.508; // Golden angle
   return `hsl(${hue % 360}, 70%, 60%)`;
+};
+
+// Helper function to generate random number in range
+const randomInRange = (min: number, max: number): number => {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 };
 
 // Type for slides with layout positioning
@@ -74,6 +80,20 @@ export function LayoutDemo() {
   // Splitting configuration
   const [enableSplitting, setEnableSplitting] = useState(false);
 
+  // Multi-level configuration
+  const [enableMultiLevel, setEnableMultiLevel] = useState(false);
+  const [subCardMin, setSubCardMin] = useState(2);
+  const [subCardMax, setSubCardMax] = useState(5);
+  const [subCardWidth, setSubCardWidth] = useState(25);
+  const [subCardHeight, setSubCardHeight] = useState(50);
+  const [subCardDimensionConstraint, setSubCardDimensionConstraint] = useState<
+    "fixed" | "variable"
+  >("fixed");
+  const [parentCardCss, setParentCardCss] = useState(
+    flexPresets.wrappedRowAlignStart.child
+  );
+  const [subCardCss, setSubCardCss] = useState("");
+
   // Camera state for panning and zooming
   const [cameraX, setCameraX] = useState(300);
   const [cameraY, setCameraY] = useState(200);
@@ -93,10 +113,38 @@ export function LayoutDemo() {
         id: `shape-${i + 1}`,
         width: shapeWidth,
         height: shapeHeight,
+        color: generateColor(`shape-${i + 1}`),
       });
     }
     return newShapes;
   }, [shapeCount, shapeWidth, shapeHeight]);
+
+  // Generate shapes with children for multi-level mode
+  const shapesWithChildren = useMemo<Shape[]>(() => {
+    if (!enableMultiLevel) {
+      return shapes;
+    }
+
+    return shapes.map((parent) => ({
+      ...parent,
+      children: Array.from(
+        { length: randomInRange(subCardMin, subCardMax) },
+        (_, i) => ({
+          id: `${parent.id}-child-${i}`,
+          width: subCardWidth,
+          height: subCardHeight,
+          color: generateColor(`${parent.id}-child-${i}`),
+        })
+      ),
+    }));
+  }, [
+    enableMultiLevel,
+    shapes,
+    subCardMin,
+    subCardMax,
+    subCardWidth,
+    subCardHeight,
+  ]);
 
   // Calculate positioned shapes (computed output)
   const { positionedShapes, calculationTime } = useMemo(() => {
@@ -107,22 +155,38 @@ export function LayoutDemo() {
       };
     }
 
-    // First pass: calculate with min height to get layout
     const containerBox: ContainerBox = {
       width: containerWidth,
       height: containerHeight,
     };
 
     const startTime = performance.now();
-    const positionedShapes = getPositionedShapes({
-      shapes,
-      containerBox,
-      containerCss,
-      shapeDimensionConstraint,
-      childCss: childCss || undefined,
-    });
-    const endTime = performance.now();
 
+    let positionedShapes: PositionedShape[];
+
+    if (enableMultiLevel) {
+      // Use multi-level layout function
+      positionedShapes = getPositionedShapesWithChildren({
+        shapes: shapesWithChildren,
+        containerBox,
+        containerCss,
+        parentCss: parentCardCss,
+        childCss: subCardCss,
+        parentDimensionConstraint: shapeDimensionConstraint,
+        childDimensionConstraint: subCardDimensionConstraint,
+      });
+    } else {
+      // Use standard single-level layout
+      positionedShapes = getPositionedShapes({
+        shapes,
+        containerBox,
+        containerCss,
+        shapeDimensionConstraint,
+        childCss: childCss || undefined,
+      });
+    }
+
+    const endTime = performance.now();
     const calcTime = endTime - startTime;
 
     return {
@@ -131,12 +195,17 @@ export function LayoutDemo() {
       actualHeight: containerHeight,
     };
   }, [
+    enableMultiLevel,
     shapes,
+    shapesWithChildren,
     containerWidth,
     containerHeight,
     containerCss,
     childCss,
+    parentCardCss,
+    subCardCss,
     shapeDimensionConstraint,
+    subCardDimensionConstraint,
   ]);
 
   // Optional split pipeline step - split positioned shapes into slides
@@ -395,6 +464,113 @@ export function LayoutDemo() {
               </label>
             </div>
             <div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={enableMultiLevel}
+                  onChange={(e) => setEnableMultiLevel(e.target.checked)}
+                  className="cursor-pointer"
+                />
+                <span className="font-semibold">
+                  Enable Multi-Level (Nested Cards)
+                </span>
+              </label>
+
+              {enableMultiLevel && (
+                <div className="mt-3 ml-6 space-y-3 border-l-2 pl-3">
+                  {/* Sub-card count range */}
+                  <div>
+                    <label className="text-sm font-semibold">
+                      Sub-Cards Per Shape
+                    </label>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="number"
+                        value={subCardMin}
+                        onChange={(e) =>
+                          setSubCardMin(Math.max(1, Number(e.target.value)))
+                        }
+                        min="1"
+                        max={subCardMax}
+                        className="border p-1 w-20"
+                        placeholder="Min"
+                      />
+                      <span>to</span>
+                      <input
+                        type="number"
+                        value={subCardMax}
+                        onChange={(e) =>
+                          setSubCardMax(
+                            Math.max(subCardMin, Number(e.target.value))
+                          )
+                        }
+                        min={subCardMin}
+                        max="50"
+                        className="border p-1 w-20"
+                        placeholder="Max"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Sub-card dimensions */}
+                  <div>
+                    <label className="text-sm font-semibold">
+                      Sub-Card Dimensions
+                    </label>
+                    <div className="space-y-2">
+                      <div>
+                        <label className="text-xs">
+                          Width: {subCardWidth}px
+                        </label>
+                        <input
+                          type="range"
+                          min="20"
+                          max="500"
+                          value={subCardWidth}
+                          onChange={(e) =>
+                            setSubCardWidth(Number(e.target.value))
+                          }
+                          className="w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs">
+                          Height: {subCardHeight}px
+                        </label>
+                        <input
+                          type="range"
+                          min="20"
+                          max="500"
+                          value={subCardHeight}
+                          onChange={(e) =>
+                            setSubCardHeight(Number(e.target.value))
+                          }
+                          className="w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs">Constraint</label>
+                        <select
+                          value={subCardDimensionConstraint}
+                          onChange={(e) =>
+                            setSubCardDimensionConstraint(
+                              e.target.value as "fixed" | "variable"
+                            )
+                          }
+                          className="border p-1 w-full"
+                        >
+                          <option value="fixed">Fixed</option>
+                          <option value="variable">
+                            Variable (flex-based)
+                          </option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            <div>
               <label
                 style={{
                   display: "block",
@@ -467,62 +643,146 @@ export function LayoutDemo() {
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label>Card</label>
-              <button
-                className="border p-1 hover:bg-gray-100 cursor-pointer"
-                onClick={() => {
-                  if (shapeDimensionConstraint === "fixed") {
-                    setShapeDimensionConstraint("variable");
-                  } else {
-                    setShapeDimensionConstraint("fixed");
-                  }
-                }}
-              >
-                {shapeDimensionConstraint === "fixed"
-                  ? "Fixed dimensions"
-                  : "Variable dimensions"}
-              </button>
-              {shapeDimensionConstraint === "fixed" && (
-                <div className="flex">
-                  <label className="flex flex-col">
-                    width: {shapeWidth}px
-                    <input
-                      type="range"
-                      className="border"
-                      max={400}
-                      value={shapeWidth}
-                      onChange={(e) => setShapeWidth(Number(e.target.value))}
-                    />
-                  </label>
-                  <label className="flex flex-col">
-                    height: {shapeHeight}px
-                    <input
-                      type="range"
-                      max={400}
-                      className="border"
-                      value={shapeHeight}
-                      onChange={(e) => setShapeHeight(Number(e.target.value))}
-                    />
-                  </label>
-                </div>
-              )}
+            {!enableMultiLevel ? (
+              <div className="flex flex-col gap-2">
+                <label>Card</label>
+                <button
+                  className="border p-1 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => {
+                    if (shapeDimensionConstraint === "fixed") {
+                      setShapeDimensionConstraint("variable");
+                    } else {
+                      setShapeDimensionConstraint("fixed");
+                    }
+                  }}
+                >
+                  {shapeDimensionConstraint === "fixed"
+                    ? "Fixed dimensions"
+                    : "Variable dimensions"}
+                </button>
+                {shapeDimensionConstraint === "fixed" && (
+                  <div className="flex">
+                    <label className="flex flex-col">
+                      width: {shapeWidth}px
+                      <input
+                        type="range"
+                        className="border"
+                        max={400}
+                        value={shapeWidth}
+                        onChange={(e) => setShapeWidth(Number(e.target.value))}
+                      />
+                    </label>
+                    <label className="flex flex-col">
+                      height: {shapeHeight}px
+                      <input
+                        type="range"
+                        max={400}
+                        className="border"
+                        value={shapeHeight}
+                        onChange={(e) => setShapeHeight(Number(e.target.value))}
+                      />
+                    </label>
+                  </div>
+                )}
 
-              <textarea
-                className="border"
-                value={childCss}
-                onChange={(e) => setChildCss(e.target.value)}
-                placeholder="e.g., align-self: flex-end; margin: 5px;"
-                style={{
-                  width: "100%",
-                  height: "60px",
-                  fontFamily: "monospace",
-                  fontSize: "12px",
-                  padding: "5px",
-                  color: "#000",
-                }}
-              />
-            </div>
+                <textarea
+                  className="border"
+                  value={childCss}
+                  onChange={(e) => setChildCss(e.target.value)}
+                  placeholder="e.g., align-self: flex-end; margin: 5px;"
+                  style={{
+                    width: "100%",
+                    height: "60px",
+                    fontFamily: "monospace",
+                    fontSize: "12px",
+                    padding: "5px",
+                    color: "#000",
+                  }}
+                />
+              </div>
+            ) : (
+              <>
+                <div className="flex flex-col gap-2">
+                  <label className="font-bold">Parent Card (Level 1)</label>
+                  <button
+                    className="border p-1 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      if (shapeDimensionConstraint === "fixed") {
+                        setShapeDimensionConstraint("variable");
+                      } else {
+                        setShapeDimensionConstraint("fixed");
+                      }
+                    }}
+                  >
+                    {shapeDimensionConstraint === "fixed"
+                      ? "Fixed dimensions"
+                      : "Variable dimensions"}
+                  </button>
+                  {shapeDimensionConstraint === "fixed" && (
+                    <div className="flex">
+                      <label className="flex flex-col">
+                        width: {shapeWidth}px
+                        <input
+                          type="range"
+                          className="border"
+                          max={400}
+                          value={shapeWidth}
+                          onChange={(e) =>
+                            setShapeWidth(Number(e.target.value))
+                          }
+                        />
+                      </label>
+                      <label className="flex flex-col">
+                        height: {shapeHeight}px
+                        <input
+                          type="range"
+                          max={400}
+                          className="border"
+                          value={shapeHeight}
+                          onChange={(e) =>
+                            setShapeHeight(Number(e.target.value))
+                          }
+                        />
+                      </label>
+                    </div>
+                  )}
+                  <label className="text-sm font-semibold">
+                    Parent Card CSS (Container for children)
+                  </label>
+                  <textarea
+                    className="border"
+                    value={parentCardCss}
+                    onChange={(e) => setParentCardCss(e.target.value)}
+                    placeholder="e.g., display: flex; gap: 10px; flex-wrap: wrap;"
+                    style={{
+                      width: "100%",
+                      height: "60px",
+                      fontFamily: "monospace",
+                      fontSize: "12px",
+                      padding: "5px",
+                      color: "#000",
+                    }}
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="font-bold">Sub-Card CSS (Level 2)</label>
+                  <textarea
+                    className="border"
+                    value={subCardCss}
+                    onChange={(e) => setSubCardCss(e.target.value)}
+                    placeholder="CSS for nested cards inside shapes"
+                    style={{
+                      width: "100%",
+                      height: "60px",
+                      fontFamily: "monospace",
+                      fontSize: "12px",
+                      padding: "5px",
+                      color: "#000",
+                    }}
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -603,28 +863,55 @@ export function LayoutDemo() {
               {/* Render non-split mode - original positioned shapes */}
               {!enableSplitting &&
                 positionedShapes.map((shape) => {
-                  const color = generateColor(shape.id);
+                  const color = shape.color || generateColor(shape.id);
                   return (
-                    <div
-                      data-shape-x={shape.x}
-                      key={shape.id}
-                      style={{
-                        position: "absolute",
-                        left: `${shape.x}px`,
-                        top: `${shape.y}px`,
-                        width: `${shape.width}px`,
-                        height: `${shape.height}px`,
-                        backgroundColor: color,
-                        border:
-                          positionedShapes.length <= 100
-                            ? "1px solid #000"
-                            : "none",
-                        boxSizing: "border-box",
-                        pointerEvents: "none",
-                      }}
-                    >
-                      {shape.id.split("-").at(-1)}
-                    </div>
+                    <React.Fragment key={shape.id}>
+                      {/* Parent shape */}
+                      <div
+                        data-shape-x={shape.x}
+                        style={{
+                          position: "absolute",
+                          left: `${shape.x}px`,
+                          top: `${shape.y}px`,
+                          width: `${shape.width}px`,
+                          height: `${shape.height}px`,
+                          backgroundColor: color,
+                          border:
+                            positionedShapes.length <= 100
+                              ? "1px solid #000"
+                              : "none",
+                          boxSizing: "border-box",
+                          pointerEvents: "none",
+                        }}
+                      >
+                        {!enableMultiLevel && shape.id.split("-").at(-1)}
+                      </div>
+
+                      {/* Children shapes (if multi-level enabled) */}
+                      {enableMultiLevel &&
+                        shape.children?.map((child) => {
+                          const childColor =
+                            child.color || generateColor(child.id);
+                          return (
+                            <div
+                              key={child.id}
+                              style={{
+                                position: "absolute",
+                                // Child positions are relative to parent
+                                left: `${shape.x + child.x}px`,
+                                top: `${shape.y + child.y}px`,
+                                width: `${child.width}px`,
+                                height: `${child.height}px`,
+                                backgroundColor: childColor,
+                                border: "2px solid #333",
+                                boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                                boxSizing: "border-box",
+                                pointerEvents: "none",
+                              }}
+                            />
+                          );
+                        })}
+                    </React.Fragment>
                   );
                 })}
 
@@ -649,28 +936,58 @@ export function LayoutDemo() {
 
                     {/* Shapes within the slide */}
                     {slide.shapes.map((shape) => {
-                      const color = generateColor(shape.id);
+                      const color = shape.color || generateColor(shape.id);
                       return (
-                        <div
-                          key={shape.id}
-                          data-shape-x={shape.x}
-                          style={{
-                            position: "absolute",
-                            left: `${slide.slideX + shape.x}px`,
-                            top: `${slide.slideY + shape.y}px`,
-                            width: `${shape.width}px`,
-                            height: `${shape.height}px`,
-                            backgroundColor: color,
-                            border:
-                              positionedShapes.length <= 100
-                                ? "1px solid #000"
-                                : "none",
-                            boxSizing: "border-box",
-                            pointerEvents: "none",
-                          }}
-                        >
-                          {shape.id.split("-").at(-1)}
-                        </div>
+                        <React.Fragment key={shape.id}>
+                          {/* Parent shape */}
+                          <div
+                            data-shape-x={shape.x}
+                            style={{
+                              position: "absolute",
+                              left: `${slide.slideX + shape.x}px`,
+                              top: `${slide.slideY + shape.y}px`,
+                              width: `${shape.width}px`,
+                              height: `${shape.height}px`,
+                              backgroundColor: color,
+                              border:
+                                positionedShapes.length <= 100
+                                  ? "1px solid #000"
+                                  : "none",
+                              boxSizing: "border-box",
+                              pointerEvents: "none",
+                            }}
+                          >
+                            {!enableMultiLevel && shape.id.split("-").at(-1)}
+                          </div>
+
+                          {/* Children shapes (if multi-level enabled) */}
+                          {enableMultiLevel &&
+                            shape.children?.map((child) => {
+                              const childColor =
+                                child.color || generateColor(child.id);
+                              return (
+                                <div
+                                  key={child.id}
+                                  style={{
+                                    position: "absolute",
+                                    left: `${
+                                      slide.slideX + shape.x + child.x
+                                    }px`,
+                                    top: `${
+                                      slide.slideY + shape.y + child.y
+                                    }px`,
+                                    width: `${child.width}px`,
+                                    height: `${child.height}px`,
+                                    backgroundColor: childColor,
+                                    border: "2px solid #333",
+                                    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+                                    boxSizing: "border-box",
+                                    pointerEvents: "none",
+                                  }}
+                                />
+                              );
+                            })}
+                        </React.Fragment>
                       );
                     })}
                   </React.Fragment>
