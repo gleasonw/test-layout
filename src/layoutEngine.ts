@@ -191,11 +191,6 @@ export const flexPresets = {
       "display: flex; flex-direction: row; gap: 12px; flex-wrap: wrap; align-items: flex-start;",
     child: "margin-left: -20px;",
   },
-  columnStack: {
-    container:
-      "display: flex; flex-direction: column; gap: 12px; align-items: center;",
-    child: "",
-  },
 };
 
 /**
