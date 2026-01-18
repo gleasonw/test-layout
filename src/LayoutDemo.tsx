@@ -7,13 +7,49 @@ import {
   type PositionedShape,
 } from "./layoutEngine";
 import React from "react";
-import { splitShapesIntoBoxes } from "@/splitEngine";
+import { splitShapesIntoBoxes, type NormalizedSlide } from "@/splitEngine";
 
 // Generate random color for each shape
 const generateColor = (id: string): string => {
   const hue = parseInt(id.replace("shape-", "")) * 137.508; // Golden angle
   return `hsl(${hue % 360}, 70%, 60%)`;
 };
+
+// Type for slides with layout positioning
+type SlideWithLayout = {
+  slideIndex: number;
+  slideX: number; // x position of slide on whiteboard
+  slideY: number; // y position of slide on whiteboard
+  slideWidth: number; // box width
+  slideHeight: number; // box height
+  shapes: PositionedShape[]; // shapes with positions relative to slide
+};
+
+// Transform NormalizedSlides into vertically stacked slides with layout info
+function layoutSlidesVertically(
+  slides: NormalizedSlide[],
+  boxWidth: number,
+  boxHeight: number,
+  gap: number = 50
+): SlideWithLayout[] {
+  const slidesWithLayout: SlideWithLayout[] = [];
+  let currentY = 0;
+
+  slides.forEach((slide, index) => {
+    slidesWithLayout.push({
+      slideIndex: index,
+      slideX: 0,
+      slideY: currentY,
+      slideWidth: boxWidth,
+      slideHeight: boxHeight,
+      shapes: slide.shapes, // Already normalized relative to slide origin
+    });
+
+    currentY += boxHeight + gap;
+  });
+
+  return slidesWithLayout;
+}
 
 export function LayoutDemo() {
   // Container configuration
@@ -34,6 +70,9 @@ export function LayoutDemo() {
   const [shapeDimensionConstraint, setShapeDimensionConstraint] = useState<
     "fixed" | "variable"
   >("fixed");
+
+  // Splitting configuration
+  const [enableSplitting, setEnableSplitting] = useState(false);
 
   // Camera state for panning and zooming
   const [cameraX, setCameraX] = useState(300);
@@ -99,6 +138,29 @@ export function LayoutDemo() {
     childCss,
     shapeDimensionConstraint,
   ]);
+
+  // Optional split pipeline step - split positioned shapes into slides
+  const slidesWithLayout = useMemo<SlideWithLayout[]>(() => {
+    if (!enableSplitting || positionedShapes.length === 0) {
+      return [];
+    }
+
+    // Split the positioned shapes into normalized slides
+    const normalizedSlides = splitShapesIntoBoxes({
+      shapes: positionedShapes,
+      box: { width: containerWidth, height: containerHeight },
+    });
+
+    console.log({ normalizedSlides });
+
+    // Layout the slides vertically with gaps
+    return layoutSlidesVertically(
+      normalizedSlides,
+      containerWidth,
+      containerHeight,
+      50
+    );
+  }, [enableSplitting, positionedShapes, containerWidth, containerHeight]);
 
   // Pan interaction handlers
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -232,18 +294,6 @@ export function LayoutDemo() {
           would have to come up with some slicing logic there.
         </p>
       </div>
-      <button
-        onClick={() => {
-          console.log(
-            splitShapesIntoBoxes({
-              shapes: positionedShapes,
-              box: { height: containerHeight, width: containerWidth },
-            })
-          );
-        }}
-      >
-        try to split
-      </button>
 
       <div className="flex gap-5">
         <div className="flex flex-col gap-5">
@@ -337,6 +387,17 @@ export function LayoutDemo() {
             {/* Container Settings */}
             <div className="flex-1 min-w-[300px]">
               <h2 className="text-xl font-semibold">Template Layout Inputs</h2>
+            </div>
+            <div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={enableSplitting}
+                  onChange={(e) => setEnableSplitting(e.target.checked)}
+                  className="cursor-pointer"
+                />
+                <span className="font-semibold">Enable Slide Splitting</span>
+              </label>
             </div>
             <div>
               <label
@@ -530,42 +591,99 @@ export function LayoutDemo() {
               style={{
                 position: "absolute",
                 width: containerWidth,
-                height: containerHeight,
+                height: enableSplitting
+                  ? slidesWithLayout.length > 0
+                    ? slidesWithLayout[slidesWithLayout.length - 1].slideY +
+                      slidesWithLayout[slidesWithLayout.length - 1].slideHeight
+                    : containerHeight
+                  : containerHeight,
                 transform: `translate(${cameraX}px, ${cameraY}px) scale(${zoom})`,
                 transformOrigin: "0 0",
                 transition: isDragging ? "none" : "transform 0.1s ease-out",
               }}
               className="border h-full"
             >
-              {/* Render shapes as absolutely positioned divs */}
-              {positionedShapes.map((shape) => {
-                const color = generateColor(shape.id);
-                return (
-                  <div
-                    key={shape.id}
-                    style={{
-                      position: "absolute",
-                      left: `${shape.x}px`,
-                      top: `${shape.y}px`,
-                      width: `${shape.width}px`,
-                      height: `${shape.height}px`,
-                      backgroundColor: color,
-                      border:
-                        positionedShapes.length <= 100
-                          ? "1px solid #000"
-                          : "none",
-                      boxSizing: "border-box",
-                      pointerEvents: "none",
-                    }}
-                  />
-                );
-              })}
+              {/* Render non-split mode - original positioned shapes */}
+              {!enableSplitting &&
+                positionedShapes.map((shape) => {
+                  const color = generateColor(shape.id);
+                  return (
+                    <div
+                      data-shape-x={shape.x}
+                      key={shape.id}
+                      style={{
+                        position: "absolute",
+                        left: `${shape.x}px`,
+                        top: `${shape.y}px`,
+                        width: `${shape.width}px`,
+                        height: `${shape.height}px`,
+                        backgroundColor: color,
+                        border:
+                          positionedShapes.length <= 100
+                            ? "1px solid #000"
+                            : "none",
+                        boxSizing: "border-box",
+                        pointerEvents: "none",
+                      }}
+                    />
+                  );
+                })}
+
+              {/* Render split mode - slides with boundaries */}
+              {enableSplitting &&
+                slidesWithLayout.map((slide) => (
+                  <React.Fragment key={slide.slideIndex}>
+                    {/* Slide boundary box */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: `${slide.slideX}px`,
+                        top: `${slide.slideY}px`,
+                        width: `${slide.slideWidth}px`,
+                        height: `${slide.slideHeight}px`,
+                        border: "2px dashed #666",
+                        backgroundColor: "rgba(200, 200, 200, 0.1)",
+                        pointerEvents: "none",
+                        boxSizing: "border-box",
+                      }}
+                    />
+
+                    {/* Shapes within the slide */}
+                    {slide.shapes.map((shape) => {
+                      const color = generateColor(shape.id);
+                      return (
+                        <div
+                          key={shape.id}
+                          data-shape-x={shape.x}
+                          style={{
+                            position: "absolute",
+                            left: `${slide.slideX + shape.x}px`,
+                            top: `${slide.slideY + shape.y}px`,
+                            width: `${shape.width}px`,
+                            height: `${shape.height}px`,
+                            backgroundColor: color,
+                            border:
+                              positionedShapes.length <= 100
+                                ? "1px solid #000"
+                                : "none",
+                            boxSizing: "border-box",
+                            pointerEvents: "none",
+                          }}
+                        />
+                      );
+                    })}
+                  </React.Fragment>
+                ))}
             </div>
           </div>
 
           <p style={{ fontSize: "12px", color: "#666", marginTop: "10px" }}>
             Drag to pan • Scroll to zoom •{" "}
             {positionedShapes.length.toLocaleString()} shapes
+            {enableSplitting &&
+              ` • ${slidesWithLayout.length} slide${
+                slidesWithLayout.length !== 1 ? "s" : ""
+              }`}
           </p>
 
           <h3 style={{ marginTop: "20px", color: "#000" }}>
