@@ -86,9 +86,6 @@ export function LayoutDemo() {
   const [subCardMax, setSubCardMax] = useState(5);
   const [subCardWidth, setSubCardWidth] = useState(25);
   const [subCardHeight, setSubCardHeight] = useState(50);
-  const [subCardDimensionConstraint, setSubCardDimensionConstraint] = useState<
-    "fixed" | "variable"
-  >("fixed");
   const [parentCardCss, setParentCardCss] = useState(
     flexPresets.wrappedRowAlignStart.child
   );
@@ -173,7 +170,7 @@ export function LayoutDemo() {
         parentCss: parentCardCss,
         childCss: subCardCss,
         parentDimensionConstraint: shapeDimensionConstraint,
-        childDimensionConstraint: subCardDimensionConstraint,
+        childDimensionConstraint: "fixed",
       });
     } else {
       // Use standard single-level layout
@@ -205,7 +202,6 @@ export function LayoutDemo() {
     parentCardCss,
     subCardCss,
     shapeDimensionConstraint,
-    subCardDimensionConstraint,
   ]);
 
   // Optional split pipeline step - split positioned shapes into slides
@@ -319,10 +315,50 @@ export function LayoutDemo() {
     const preset = flexPresets[presetKey as keyof typeof flexPresets];
     setContainerCss(preset.container);
     setChildCss(preset.child);
-    if (presetKey === "autoExpandingCards") {
-      setShapeDimensionConstraint("variable");
+
+    // Multi-card layout presets - enable multi-level mode and adjust settings
+    const multiCardPresets = [
+      "rowResponsiveParents",
+      "columnResponsiveParents",
+      "rowOverlappingChildren",
+      "columnStack",
+    ];
+
+    if (multiCardPresets.includes(presetKey)) {
+      setEnableMultiLevel(true);
+      // Bump up child card range for better multi-level showcase
+      setSubCardMin(3);
+      setSubCardMax(8);
+      // Set variable dimension constraint for responsive sizing (nested cards always use fixed)
+      if (
+        presetKey === "rowResponsiveParents" ||
+        presetKey === "columnResponsiveParents" ||
+        presetKey === "rowOverlappingChildren"
+      ) {
+        setShapeDimensionConstraint("variable");
+      } else {
+        setShapeDimensionConstraint("fixed");
+      }
+      // For overlapping preset, set up parent card CSS with padding
+      if (presetKey === "rowOverlappingChildren") {
+        setParentCardCss(
+          "display: flex; flex-direction: row; gap: 5px; flex-wrap: wrap; padding-left: 15px;"
+        );
+        setSubCardCss("margin-left: -8px;");
+      } else {
+        setParentCardCss(
+          "display: flex; flex-direction: row; gap: 5px; flex-wrap: wrap;"
+        );
+        setSubCardCss("");
+      }
     } else {
-      setShapeDimensionConstraint("fixed");
+      // Standard presets - disable multi-level mode
+      setEnableMultiLevel(false);
+      if (presetKey === "autoExpandingCards") {
+        setShapeDimensionConstraint("variable");
+      } else {
+        setShapeDimensionConstraint("fixed");
+      }
     }
   };
 
@@ -547,23 +583,6 @@ export function LayoutDemo() {
                           }
                           className="w-full"
                         />
-                      </div>
-                      <div>
-                        <label className="text-xs">Constraint</label>
-                        <select
-                          value={subCardDimensionConstraint}
-                          onChange={(e) =>
-                            setSubCardDimensionConstraint(
-                              e.target.value as "fixed" | "variable"
-                            )
-                          }
-                          className="border p-1 w-full"
-                        >
-                          <option value="fixed">Fixed</option>
-                          <option value="variable">
-                            Variable (flex-based)
-                          </option>
-                        </select>
                       </div>
                     </div>
                   </div>

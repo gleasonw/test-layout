@@ -185,6 +185,27 @@ export const flexPresets = {
       "display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 10px;",
     child: "",
   },
+  // Multi-level layout presets showcasing nested card functionality
+  rowResponsiveParents: {
+    container:
+      "display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; align-items: flex-start;",
+    child: "",
+  },
+  columnResponsiveParents: {
+    container:
+      "display: flex; flex-direction: column; gap: 15px; align-items: flex-start;",
+    child: "",
+  },
+  rowOverlappingChildren: {
+    container:
+      "display: flex; flex-direction: row; gap: 12px; flex-wrap: wrap; align-items: flex-start;",
+    child: "margin-left: -8px;",
+  },
+  columnStack: {
+    container:
+      "display: flex; flex-direction: column; gap: 12px; align-items: center;",
+    child: "",
+  },
 };
 
 /**
