@@ -202,7 +202,7 @@ export function LayoutDemo() {
       const mouseY = e.clientY - rect.top;
 
       // Zoom factor
-      const zoomDelta = e.deltaY > 0 ? 0.97 : 1.03;
+      const zoomDelta = e.deltaY > 0 ? 0.96 : 1.04;
       const newZoom = Math.max(0.1, Math.min(5, zoom * zoomDelta));
 
       // World position under mouse (before zoom)
@@ -224,10 +224,7 @@ export function LayoutDemo() {
     viewportRef.current?.addEventListener("wheel", handleWheel, {
       passive: false,
     });
-    return () =>
-      viewportRef.current?.removeEventListener("wheel", handleWheel, {
-        passive: false,
-      });
+    return () => viewportRef.current?.removeEventListener("wheel", handleWheel);
   }, [handleWheel]);
 
   const resetCamera = () => {
@@ -265,8 +262,6 @@ export function LayoutDemo() {
     label: key.replace(/([A-Z])/g, " $1").trim(),
     value: key,
   }));
-
-  window["positionedShapes"] = positionedShapes;
 
   return (
     <div className="p-10 font-sans text-black flex flex-col gap-10 max-w-7xl mx-auto">
@@ -495,6 +490,7 @@ export function LayoutDemo() {
                     <input
                       type="range"
                       className="border"
+                      max={400}
                       value={shapeWidth}
                       onChange={(e) => setShapeWidth(Number(e.target.value))}
                     />
@@ -503,6 +499,7 @@ export function LayoutDemo() {
                     height: {shapeHeight}px
                     <input
                       type="range"
+                      max={400}
                       className="border"
                       value={shapeHeight}
                       onChange={(e) => setShapeHeight(Number(e.target.value))}
@@ -601,7 +598,7 @@ export function LayoutDemo() {
                 transformOrigin: "0 0",
                 transition: isDragging ? "none" : "transform 0.1s ease-out",
               }}
-              className="border h-full"
+              className={`${!enableSplitting && `border`} h-full`}
             >
               {/* Render non-split mode - original positioned shapes */}
               {!enableSplitting &&
@@ -625,7 +622,9 @@ export function LayoutDemo() {
                         boxSizing: "border-box",
                         pointerEvents: "none",
                       }}
-                    />
+                    >
+                      {shape.id.split("-").at(-1)}
+                    </div>
                   );
                 })}
 
@@ -641,7 +640,7 @@ export function LayoutDemo() {
                         top: `${slide.slideY}px`,
                         width: `${slide.slideWidth}px`,
                         height: `${slide.slideHeight}px`,
-                        border: "2px dashed #666",
+                        border: "1px solid #000",
                         backgroundColor: "rgba(200, 200, 200, 0.1)",
                         pointerEvents: "none",
                         boxSizing: "border-box",
@@ -669,7 +668,9 @@ export function LayoutDemo() {
                             boxSizing: "border-box",
                             pointerEvents: "none",
                           }}
-                        />
+                        >
+                          {shape.id.split("-").at(-1)}
+                        </div>
                       );
                     })}
                   </React.Fragment>
