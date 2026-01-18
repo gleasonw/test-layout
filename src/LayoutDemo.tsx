@@ -7,6 +7,7 @@ import {
   type PositionedShape,
 } from "./layoutEngine";
 import React from "react";
+import { splitShapesIntoBoxes } from "@/splitEngine";
 
 // Generate random color for each shape
 const generateColor = (id: string): string => {
@@ -171,7 +172,7 @@ export function LayoutDemo() {
     const viewport = viewportRef.current;
     if (!viewport) return;
 
-    const targetZoom = 0.5;
+    const targetZoom = 0.75;
 
     const viewportWidth = viewport.clientWidth;
     const viewportHeight = viewport.clientHeight;
@@ -203,6 +204,8 @@ export function LayoutDemo() {
     value: key,
   }));
 
+  window["positionedShapes"] = positionedShapes;
+
   return (
     <div className="p-10 font-sans text-black flex flex-col gap-10 max-w-7xl mx-auto">
       <div className="flex flex-col gap-5">
@@ -229,6 +232,18 @@ export function LayoutDemo() {
           would have to come up with some slicing logic there.
         </p>
       </div>
+      <button
+        onClick={() => {
+          console.log(
+            splitShapesIntoBoxes({
+              shapes: positionedShapes,
+              box: { height: containerHeight, width: containerWidth },
+            })
+          );
+        }}
+      >
+        try to split
+      </button>
 
       <div className="flex gap-5">
         <div className="flex flex-col gap-5">
