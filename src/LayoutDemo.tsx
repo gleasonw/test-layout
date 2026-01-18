@@ -72,7 +72,7 @@ export function LayoutDemo() {
   // Shape configuration (inputs)
   const [shapeWidth, setShapeWidth] = useState(50);
   const [shapeHeight, setShapeHeight] = useState(50);
-  const [shapeCount, setShapeCount] = useState<number | undefined>(16);
+  const [shapeCount, setShapeCount] = useState<number | undefined>(85);
   const [shapeDimensionConstraint, setShapeDimensionConstraint] = useState<
     "fixed" | "variable"
   >("fixed");
@@ -81,7 +81,7 @@ export function LayoutDemo() {
   const [enableSplitting, setEnableSplitting] = useState(false);
 
   // Multi-level configuration
-  const [enableMultiLevel, setEnableMultiLevel] = useState(false);
+  const [enableMultiLevel, setMultiLevel] = useState(false);
   const [subCardMin, setSubCardMin] = useState(2);
   const [subCardMax, setSubCardMax] = useState(5);
   const [subCardWidth, setSubCardWidth] = useState(25);
@@ -101,6 +101,14 @@ export function LayoutDemo() {
   );
 
   const viewportRef = useRef<HTMLDivElement>(null);
+
+  function setEnableMultiLevel(val: boolean) {
+    if (val) {
+      setShapeDimensionConstraint("variable");
+      setParentCardCss("display: flex; padding: 15px;");
+    }
+    setMultiLevel(val);
+  }
 
   // Generate shapes from count (computed)
   const shapes = useMemo<Shape[]>(() => {
@@ -342,7 +350,7 @@ export function LayoutDemo() {
       // For overlapping preset, set up parent card CSS with padding
       if (presetKey === "rowOverlappingChildren") {
         setParentCardCss(
-          "display: flex; flex-direction: row; gap: 5px; flex-wrap: wrap; padding-left: 15px;"
+          "display: flex; flex-direction: row; gap: 5px; flex-wrap: wrap; padding: 15px;"
         );
         setSubCardCss("margin-left: -8px;");
       } else {
@@ -393,6 +401,26 @@ export function LayoutDemo() {
           splitting. Flex has no idea how to split up data vertically, so we
           would have to come up with some slicing logic there.
         </p>
+      </div>
+
+      {/* Prominent Preset Selection Section */}
+      <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 shadow-md">
+        <label className="block text-lg font-bold mb-3 text-gray-800">
+          Layout Preset
+        </label>
+        <select
+          className="w-full border-2 border-blue-300 rounded-md text-base p-3 bg-white cursor-pointer hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+          value={selectedPreset}
+          onChange={(e) =>
+            handlePresetChange(e.target.value as keyof typeof flexPresets)
+          }
+        >
+          {presetOptions.map(({ label, value }) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="flex gap-5">
@@ -471,7 +499,7 @@ export function LayoutDemo() {
                   placeholder="Enter custom count..."
                 />
                 <button
-                  className="p-2 text-center bg-black w-full text-white"
+                  className="py-1 px-3 text-center border border-gray-400 text-gray-700 hover:bg-gray-50 rounded transition-colors text-sm"
                   onClick={() =>
                     setShapeCount(shapeCount !== undefined ? shapeCount + 1 : 1)
                   }
@@ -588,31 +616,6 @@ export function LayoutDemo() {
                   </div>
                 </div>
               )}
-            </div>
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "5px",
-                  fontWeight: "bold",
-                  color: "#000",
-                }}
-              >
-                Preset
-              </label>
-              <select
-                className="border"
-                value={selectedPreset}
-                onChange={(e) =>
-                  handlePresetChange(e.target.value as keyof typeof flexPresets)
-                }
-              >
-                {presetOptions.map(({ label, value }) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
             </div>
             <div>
               <label>Container </label>

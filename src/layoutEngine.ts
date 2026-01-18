@@ -180,11 +180,6 @@ export const flexPresets = {
       "display: flex; flex-direction: row; flex-wrap: wrap; padding-left: 20px; align-items: flex-start;",
     child: "margin-left: -10px;",
   },
-  centeredRow: {
-    container:
-      "display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 10px;",
-    child: "",
-  },
   // Multi-level layout presets showcasing nested card functionality
   rowResponsiveParents: {
     container:
@@ -210,10 +205,10 @@ export const flexPresets = {
 
 /**
  * Multi-level layout engine function (Single-pass)
- * 
+ *
  * Performs a single layout calculation where parent shapes contain their children
  * in the DOM during layout, allowing parents to respond to children sizes.
- * 
+ *
  * @param shapes - Array of shapes that may contain children
  * @param containerBox - Container dimensions for top-level shapes
  * @param containerCss - CSS for the main container
@@ -276,7 +271,7 @@ export function getPositionedShapesWithChildren(args: {
 
   shapes.forEach((shape) => {
     const parentElement = document.createElement("div");
-    
+
     // Apply parent dimension constraints
     if (parentDimensionConstraint === "fixed") {
       parentElement.style.width = `${shape.width}px`;
@@ -300,7 +295,7 @@ export function getPositionedShapesWithChildren(args: {
     if (shape.children && shape.children.length > 0) {
       shape.children.forEach((childShape) => {
         const childElement = document.createElement("div");
-        
+
         // Apply child dimension constraints
         if (childDimensionConstraint === "fixed") {
           childElement.style.width = `${childShape.width}px`;
@@ -347,7 +342,9 @@ export function getPositionedShapesWithChildren(args: {
       const parentWidth =
         parentDimensionConstraint === "fixed" ? shape.width : parentRect.width;
       const parentHeight =
-        parentDimensionConstraint === "fixed" ? shape.height : parentRect.height;
+        parentDimensionConstraint === "fixed"
+          ? shape.height
+          : parentRect.height;
 
       // Calculate children positions relative to parent
       const positionedChildren: PositionedShape[] = childElements.map(
@@ -385,7 +382,8 @@ export function getPositionedShapesWithChildren(args: {
         width: parentWidth,
         height: parentHeight,
         color: shape.color,
-        children: positionedChildren.length > 0 ? positionedChildren : undefined,
+        children:
+          positionedChildren.length > 0 ? positionedChildren : undefined,
       };
     }
   );
