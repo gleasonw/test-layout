@@ -2,7 +2,6 @@ import type { ContainerBox, PositionedShape } from "@/layoutEngine";
 
 export type NormalizedSlide = {
   shapes: Array<PositionedShape>;
-  origin: { x: number; y: number }; // original offset in the full layout
 };
 
 export function splitShapesIntoBoxes(args: {
@@ -48,21 +47,18 @@ export function splitShapesIntoBoxes(args: {
   function flush() {
     if (activeRows.length === 0) return;
 
-    const slideLeft = Math.min(
-      ...activeRows.flatMap((r) => r.shapes.map((s) => s.x))
-    );
-
-    const origin = { x: slideLeft, y: slideTop };
-
+    // Normalize all shapes by translating them relative to the slide's (0, 0) origin
+    // Since the container's left edge is at x=0, we don't need to translate X
+    // We only translate Y by subtracting slideTop (the Y position where this slide starts)
     const normalizedShapes = activeRows.flatMap((r) =>
       r.shapes.map((s) => ({
         ...s,
-        x: s.x - origin.x,
-        y: s.y - origin.y,
+        x: s.x, // Keep X position unchanged
+        y: s.y - slideTop, // Translate Y to be relative to slide origin
       }))
     );
 
-    slides.push({ origin, shapes: normalizedShapes });
+    slides.push({ shapes: normalizedShapes });
     activeRows = [];
   }
 

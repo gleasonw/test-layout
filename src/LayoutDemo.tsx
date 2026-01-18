@@ -42,7 +42,7 @@ function layoutSlidesVertically(
       slideY: currentY,
       slideWidth: boxWidth,
       slideHeight: boxHeight,
-      shapes: slide.shapes, // Already normalized relative to slide origin
+      shapes: slide.shapes, // Already normalized relative to slide (0, 0)
     });
 
     currentY += boxHeight + gap;
