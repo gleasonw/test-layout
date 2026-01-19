@@ -429,24 +429,51 @@ export function LayoutDemo() {
         </p>
       </div>
 
-      {/* Prominent Preset Selection Section */}
+      {/* Top-Level Controls Section */}
       <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 shadow-md">
-        <label className="block text-lg font-bold mb-3 text-gray-800">
-          Layout Preset
-        </label>
-        <select
-          className="w-full border-2 border-blue-300 rounded-md text-base p-3 bg-white cursor-pointer hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-          value={selectedPreset}
-          onChange={(e) =>
-            handlePresetChange(e.target.value as keyof typeof flexPresets)
-          }
-        >
-          {presetOptions.map(({ label, value }) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
+        <div className="flex flex-wrap gap-6 items-center">
+          {/* Preset Selector */}
+          <div className="flex items-center gap-3 flex-1 min-w-[250px]">
+            <label className="text-lg font-bold text-gray-800 whitespace-nowrap">
+              Preset:
+            </label>
+            <select
+              className="flex-1 border-2 border-blue-300 rounded-md text-base p-2 bg-white cursor-pointer hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+              value={selectedPreset}
+              onChange={(e) =>
+                handlePresetChange(e.target.value as keyof typeof flexPresets)
+              }
+            >
+              {presetOptions.map(({ label, value }) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Enable Slide Splitting Checkbox */}
+          <label className="flex items-center gap-2 cursor-pointer whitespace-nowrap">
+            <input
+              type="checkbox"
+              checked={enableSplitting}
+              onChange={(e) => setEnableSplitting(e.target.checked)}
+              className="cursor-pointer w-4 h-4"
+            />
+            <span className="font-semibold">Enable Slide Splitting</span>
+          </label>
+
+          {/* Enable Multi-Level Checkbox */}
+          <label className="flex items-center gap-2 cursor-pointer whitespace-nowrap">
+            <input
+              type="checkbox"
+              checked={enableMultiLevel}
+              onChange={(e) => setEnableMultiLevel(e.target.checked)}
+              className="cursor-pointer w-4 h-4"
+            />
+            <span className="font-semibold">Enable Multi-Level</span>
+          </label>
+        </div>
       </div>
 
       <div className="flex gap-5">
@@ -457,21 +484,7 @@ export function LayoutDemo() {
               <h2 className="text-xl font-semibold mb-4">Item Count</h2>
 
               <div className="flex flex-col gap-2">
-                <div style={{ display: "flex", gap: "10px" }}>
-                  <button
-                    onClick={() => setShapeCount(100)}
-                    style={{
-                      padding: "6px 12px",
-                      cursor: "pointer",
-                      background: shapeCount === 100 ? "#007bff" : "#e9ecef",
-                      color: shapeCount === 100 ? "white" : "#000",
-                      border: "none",
-                      borderRadius: "4px",
-                      fontSize: "14px",
-                    }}
-                  >
-                    100
-                  </button>
+                <div className="flex gap-2">
                   <button
                     onClick={() => setShapeCount(1000)}
                     style={{
@@ -500,78 +513,46 @@ export function LayoutDemo() {
                   >
                     10,000
                   </button>
-                </div>
-                <input
-                  type="number"
-                  value={shapeCount}
-                  onChange={(e) => {
-                    const isNan = isNaN(parseInt(e.target.value));
-                    if (!isNan) {
-                      setShapeCount(Math.max(0, parseInt(e.target.value)));
-                    } else {
-                      setShapeCount(undefined);
+                  <input
+                    type="number"
+                    value={shapeCount}
+                    onChange={(e) => {
+                      const isNan = isNaN(parseInt(e.target.value));
+                      if (!isNan) {
+                        setShapeCount(Math.max(0, parseInt(e.target.value)));
+                      } else {
+                        setShapeCount(undefined);
+                      }
+                    }}
+                    min="1"
+                    max="100000"
+                    style={{
+                      width: "100%",
+                      padding: "8px",
+                      fontSize: "14px",
+                      border: "1px solid #ddd",
+                      borderRadius: "4px",
+                      color: "#000",
+                    }}
+                    placeholder="Enter custom count..."
+                  />
+                  <button
+                    className="py-1 px-3 text-center border border-gray-400 text-gray-700 hover:bg-gray-50 rounded transition-colors text-sm"
+                    onClick={() =>
+                      setShapeCount(
+                        shapeCount !== undefined ? shapeCount + 1 : 1
+                      )
                     }
-                  }}
-                  min="1"
-                  max="100000"
-                  style={{
-                    width: "100%",
-                    padding: "8px",
-                    fontSize: "14px",
-                    border: "1px solid #ddd",
-                    borderRadius: "4px",
-                    color: "#000",
-                  }}
-                  placeholder="Enter custom count..."
-                />
-                <button
-                  className="py-1 px-3 text-center border border-gray-400 text-gray-700 hover:bg-gray-50 rounded transition-colors text-sm"
-                  onClick={() =>
-                    setShapeCount(shapeCount !== undefined ? shapeCount + 1 : 1)
-                  }
-                >
-                  Add a shape
-                </button>
-              </div>
-            </div>
-          </div>
+                  >
+                    +
+                  </button>
+                </div>
 
-          {/* Controls Section */}
-          <div className="flex flex-col gap-6 flex-wrap border shadow-lg p-3">
-            {/* Container Settings */}
-            <div className="flex-1 min-w-[300px]">
-              <h2 className="text-xl font-semibold">Template Layout Inputs</h2>
-            </div>
-            <div>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={enableSplitting}
-                  onChange={(e) => setEnableSplitting(e.target.checked)}
-                  className="cursor-pointer"
-                />
-                <span className="font-semibold">Enable Slide Splitting</span>
-              </label>
-            </div>
-            <div>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={enableMultiLevel}
-                  onChange={(e) => setEnableMultiLevel(e.target.checked)}
-                  className="cursor-pointer"
-                />
-                <span className="font-semibold">
-                  Enable Multi-Level (Nested Cards)
-                </span>
-              </label>
-
-              {enableMultiLevel && (
-                <div className="mt-3 ml-6 space-y-3 border-l-2 pl-3">
-                  {/* Sub-card count range */}
-                  <div>
-                    <label className="text-sm font-semibold">
-                      Sub-Cards Per Shape
+                {/* Sub-card count controls when multi-level is enabled */}
+                {enableMultiLevel && (
+                  <div className="mt-4 pt-4 border-t border-gray-300">
+                    <label className="text-sm font-semibold block mb-2">
+                      Sub-Cards Per Parent Card
                     </label>
                     <div className="flex gap-2 items-center">
                       <input
@@ -582,10 +563,10 @@ export function LayoutDemo() {
                         }
                         min="1"
                         max={subCardMax}
-                        className="border p-1 w-20"
+                        className="border border-gray-300 rounded p-2 w-16 text-sm"
                         placeholder="Min"
                       />
-                      <span>to</span>
+                      <span className="text-sm text-gray-600">to</span>
                       <input
                         type="number"
                         value={subCardMax}
@@ -596,57 +577,27 @@ export function LayoutDemo() {
                         }
                         min={subCardMin}
                         max="50"
-                        className="border p-1 w-20"
+                        className="border border-gray-300 rounded p-2 w-16 text-sm"
                         placeholder="Max"
                       />
                     </div>
                   </div>
-
-                  {/* Sub-card dimensions */}
-                  <div>
-                    <label className="text-sm font-semibold">
-                      Sub-Card Dimensions
-                    </label>
-                    <div className="space-y-2">
-                      <div>
-                        <label className="text-xs">
-                          Width: {subCardWidth}px
-                        </label>
-                        <input
-                          type="range"
-                          min="20"
-                          max="500"
-                          value={subCardWidth}
-                          onChange={(e) =>
-                            setSubCardWidth(Number(e.target.value))
-                          }
-                          className="w-full"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs">
-                          Height: {subCardHeight}px
-                        </label>
-                        <input
-                          type="range"
-                          min="20"
-                          max="500"
-                          value={subCardHeight}
-                          onChange={(e) =>
-                            setSubCardHeight(Number(e.target.value))
-                          }
-                          className="w-full"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-            <div>
-              <label>Container </label>
+          </div>
+
+          {/* Template Layout Inputs Section */}
+          <div className="flex flex-col gap-6 flex-wrap border shadow-lg p-3">
+            <div className="flex-1 min-w-[300px]">
+              <h2 className="text-xl font-semibold">Template Layout Inputs</h2>
+            </div>
+
+            {/* Container (Slide) */}
+            <div className="flex flex-col gap-3">
+              <label className="font-bold text-base">Container (Slide)</label>
               <div className="flex w-full gap-2">
-                <div>
+                <div className="flex-1">
                   <label className="text-sm">Width: {containerWidth}px</label>
                   <input
                     type="range"
@@ -654,183 +605,149 @@ export function LayoutDemo() {
                     max="1200"
                     value={containerWidth}
                     onChange={(e) => setContainerWidth(Number(e.target.value))}
-                    style={{ width: "100%" }}
+                    className="w-full"
                   />
                 </div>
-                <div className="flex w-full gap-2">
-                  <div>
-                    <label className="text-sm">
-                      Height: {containerHeight}px
-                    </label>
-                    <input
-                      type="range"
-                      min="200"
-                      max="1200"
-                      value={containerHeight}
-                      onChange={(e) =>
-                        setContainerHeight(Number(e.target.value))
-                      }
-                      style={{ width: "100%" }}
-                    />
-                  </div>
+                <div className="flex-1">
+                  <label className="text-sm">Height: {containerHeight}px</label>
+                  <input
+                    type="range"
+                    min="200"
+                    max="1200"
+                    value={containerHeight}
+                    onChange={(e) => setContainerHeight(Number(e.target.value))}
+                    className="w-full"
+                  />
                 </div>
               </div>
 
+              <label className="text-sm font-medium">Container CSS</label>
               <textarea
                 value={containerCss}
                 onChange={(e) => setContainerCss(e.target.value)}
-                className="border"
-                style={{
-                  width: "100%",
-                  height: "60px",
-                  fontFamily: "monospace",
-                  fontSize: "12px",
-                  padding: "5px",
-                  color: "#000",
-                }}
+                className="border rounded p-2 font-mono text-xs"
+                rows={3}
+                placeholder="Container layout CSS..."
               />
             </div>
 
-            {!enableMultiLevel ? (
-              <div className="flex flex-col gap-2">
-                <label>Card</label>
-                <button
-                  className="border p-1 hover:bg-gray-100 cursor-pointer"
-                  onClick={() => {
-                    if (shapeDimensionConstraint === "fixed") {
-                      setShapeDimensionConstraint("variable");
-                    } else {
-                      setShapeDimensionConstraint("fixed");
-                    }
-                  }}
-                >
-                  {shapeDimensionConstraint === "fixed"
-                    ? "Fixed dimensions"
-                    : "Variable dimensions"}
-                </button>
-                {shapeDimensionConstraint === "fixed" && (
-                  <div className="flex">
-                    <label className="flex flex-col">
-                      width: {shapeWidth}px
+            {/* Parent Card (Level 1) */}
+            <div className="flex flex-col gap-3 pl-4 border-l-4 border-blue-300">
+              <label className="font-bold text-base">
+                {enableMultiLevel ? "Parent Card (Level 1)" : "Card"}
+              </label>
+
+              <button
+                className="border border-gray-300 rounded p-2 hover:bg-gray-100 cursor-pointer transition-colors text-sm font-medium"
+                onClick={() => {
+                  setShapeDimensionConstraint(
+                    shapeDimensionConstraint === "fixed" ? "variable" : "fixed"
+                  );
+                }}
+              >
+                {shapeDimensionConstraint === "fixed"
+                  ? "Fixed dimensions"
+                  : "Variable dimensions"}
+              </button>
+
+              {shapeDimensionConstraint === "fixed" && (
+                <div className="flex gap-4">
+                  <label className="flex flex-col flex-1">
+                    <span className="text-sm mb-1">Width: {shapeWidth}px</span>
+                    <input
+                      type="range"
+                      className="border"
+                      max={400}
+                      value={shapeWidth}
+                      onChange={(e) => setShapeWidth(Number(e.target.value))}
+                    />
+                  </label>
+                  <label className="flex flex-col flex-1">
+                    <span className="text-sm mb-1">
+                      Height: {shapeHeight}px
+                    </span>
+                    <input
+                      type="range"
+                      max={400}
+                      className="border"
+                      value={shapeHeight}
+                      onChange={(e) => setShapeHeight(Number(e.target.value))}
+                    />
+                  </label>
+                </div>
+              )}
+
+              <label className="text-sm font-medium">
+                {enableMultiLevel ? "Parent Card CSS" : "Card CSS"}
+              </label>
+              <textarea
+                className="border rounded p-2 font-mono text-xs"
+                value={enableMultiLevel ? parentCardCss : childCss}
+                onChange={(e) =>
+                  enableMultiLevel
+                    ? setParentCardCss(e.target.value)
+                    : setChildCss(e.target.value)
+                }
+                placeholder={
+                  enableMultiLevel
+                    ? "e.g., display: flex; gap: 10px; flex-wrap: wrap;"
+                    : "e.g., align-self: flex-end; margin: 5px;"
+                }
+                rows={3}
+              />
+
+              {/* Nested Card (Level 2) - only when multi-level enabled */}
+              {enableMultiLevel && (
+                <div className="flex flex-col gap-3 pl-4 mt-2 border-l-4 border-green-300">
+                  <label className="font-bold text-base">
+                    Nested Card (Level 2)
+                  </label>
+
+                  {/* Sub-card dimensions */}
+                  <div className="flex gap-4">
+                    <label className="flex flex-col flex-1">
+                      <span className="text-sm mb-1">
+                        Width: {subCardWidth}px
+                      </span>
                       <input
                         type="range"
-                        className="border"
-                        max={400}
-                        value={shapeWidth}
-                        onChange={(e) => setShapeWidth(Number(e.target.value))}
+                        min="20"
+                        max="500"
+                        value={subCardWidth}
+                        onChange={(e) =>
+                          setSubCardWidth(Number(e.target.value))
+                        }
+                        className="w-full"
                       />
                     </label>
-                    <label className="flex flex-col">
-                      height: {shapeHeight}px
+                    <label className="flex flex-col flex-1">
+                      <span className="text-sm mb-1">
+                        Height: {subCardHeight}px
+                      </span>
                       <input
                         type="range"
-                        max={400}
-                        className="border"
-                        value={shapeHeight}
-                        onChange={(e) => setShapeHeight(Number(e.target.value))}
+                        min="20"
+                        max="500"
+                        value={subCardHeight}
+                        onChange={(e) =>
+                          setSubCardHeight(Number(e.target.value))
+                        }
+                        className="w-full"
                       />
                     </label>
                   </div>
-                )}
 
-                <textarea
-                  className="border"
-                  value={childCss}
-                  onChange={(e) => setChildCss(e.target.value)}
-                  placeholder="e.g., align-self: flex-end; margin: 5px;"
-                  style={{
-                    width: "100%",
-                    height: "60px",
-                    fontFamily: "monospace",
-                    fontSize: "12px",
-                    padding: "5px",
-                    color: "#000",
-                  }}
-                />
-              </div>
-            ) : (
-              <>
-                <div className="flex flex-col gap-2">
-                  <label className="font-bold">Parent Card (Level 1)</label>
-                  <button
-                    className="border p-1 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => {
-                      if (shapeDimensionConstraint === "fixed") {
-                        setShapeDimensionConstraint("variable");
-                      } else {
-                        setShapeDimensionConstraint("fixed");
-                      }
-                    }}
-                  >
-                    {shapeDimensionConstraint === "fixed"
-                      ? "Fixed dimensions"
-                      : "Variable dimensions"}
-                  </button>
-                  {shapeDimensionConstraint === "fixed" && (
-                    <div className="flex">
-                      <label className="flex flex-col">
-                        width: {shapeWidth}px
-                        <input
-                          type="range"
-                          className="border"
-                          max={400}
-                          value={shapeWidth}
-                          onChange={(e) =>
-                            setShapeWidth(Number(e.target.value))
-                          }
-                        />
-                      </label>
-                      <label className="flex flex-col">
-                        height: {shapeHeight}px
-                        <input
-                          type="range"
-                          max={400}
-                          className="border"
-                          value={shapeHeight}
-                          onChange={(e) =>
-                            setShapeHeight(Number(e.target.value))
-                          }
-                        />
-                      </label>
-                    </div>
-                  )}
-                  <label className="text-sm font-semibold">
-                    Parent Card CSS (Container for children)
-                  </label>
+                  <label className="text-sm font-medium">Nested Card CSS</label>
                   <textarea
-                    className="border"
-                    value={parentCardCss}
-                    onChange={(e) => setParentCardCss(e.target.value)}
-                    placeholder="e.g., display: flex; gap: 10px; flex-wrap: wrap;"
-                    style={{
-                      width: "100%",
-                      height: "60px",
-                      fontFamily: "monospace",
-                      fontSize: "12px",
-                      padding: "5px",
-                      color: "#000",
-                    }}
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="font-bold">Sub-Card CSS (Level 2)</label>
-                  <textarea
-                    className="border"
+                    className="border rounded p-2 font-mono text-xs"
                     value={subCardCss}
                     onChange={(e) => setSubCardCss(e.target.value)}
-                    placeholder="CSS for nested cards inside shapes"
-                    style={{
-                      width: "100%",
-                      height: "60px",
-                      fontFamily: "monospace",
-                      fontSize: "12px",
-                      padding: "5px",
-                      color: "#000",
-                    }}
+                    placeholder="CSS for nested cards..."
+                    rows={3}
                   />
                 </div>
-              </>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
