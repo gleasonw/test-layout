@@ -388,9 +388,9 @@ export function LayoutDemo() {
         </p>
         <p>
           With templates, all we have is an array of data, and then item
-          card/slide card dimension constraints. Normally, during render, we
-          rely on the JSX and CSS declarations to handle the positioning of item
-          cards. When we move templated data into the whiteboard, though, we'll
+          card/slide card dimension constraints. During template render, we rely
+          on CSS declarations to handle the positioning of item cards inside a
+          slide. When we move templated data into the whiteboard, though, we'll
           have to declare each item card's position and make sure it matches the
           CSS from the template shapes (WrappingRow, DistinctFieldValues).
           Reproducing CSS outputs for the whiteboard would be a huge pain, so I
