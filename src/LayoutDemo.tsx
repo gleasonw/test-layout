@@ -381,25 +381,36 @@ export function LayoutDemo() {
       <div className="flex flex-col gap-5">
         <h1 className="text-3xl font-bold">CSS Layout Engine Demo</h1>
         <p className="">
-          The idea here is to use css and an invisible DOM element to get shape
-          positions for us, rather than computing layout ourselves. The
-          advantage is we don't have to handle any layout complexity ourselves.
-          Performance seems good.
+          The idea here is to use the browser's layout engine, CSS, to get shape
+          positions for us, rather than writing our own layout logic. The CSS
+          approach could power importing a templated dataset into the
+          whiteboard.{" "}
         </p>
         <p>
-          For now, the CSS approach could solve the use case of "import template
-          into the whiteboard". With templates, all we have is an array of data,
-          and then card/slide dimensions. Normally we rely on the JSX and css
-          spec to handle the positioning, but if we're moving items in bulk into
-          the whiteboard, we'll need to pull the CSS from the template shapes
-          (WrappingRow, DistinctFieldValues) and then reapply them with the
-          logic in this demo (generatePositionsFromCSS)
+          With templates, all we have is an array of data, and then item
+          card/slide card dimension constraints. Normally, during render, we
+          rely on the JSX and CSS declarations to handle the positioning of item
+          cards. When we move items in bulk into the whiteboard, though, we'll
+          have to declare each shape's position and make sure it matches the CSS
+          from the template shapes (WrappingRow, DistinctFieldValues).
+          Reproducing CSS outputs for the whiteboard would be a huge pain in the
+          butt, so I wanted to see how performant using CSS as a
+          behind-the-scenes layout engine would be. The code is{" "}
+          <a
+            href="https://github.com/gleasonw/test-layout/blob/main/src/layoutEngine.ts#L45"
+            target="_blank"
+            className="underline"
+          >
+            here.
+          </a>
         </p>
         <p>
           If we wanted to go further and actually expose the CSS to the user in
           the template manager, the complication for templates is slide
-          splitting. Flex has no idea how to split up data vertically, so we
-          would have to come up with some slicing logic there.
+          splitting. Flex has no idea how to split up data vertically. With a
+          big assist from Claude Opus, I put together a splitting algorithm that
+          works on positioned shape outputs. It seems to work well, but I would
+          want to have a full test suite in place before relying on it too much.
         </p>
       </div>
 
