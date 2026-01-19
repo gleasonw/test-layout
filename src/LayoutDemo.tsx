@@ -397,7 +397,8 @@ export function LayoutDemo() {
           DistinctFieldValues). Manually reproducing CSS outputs for the
           whiteboard would be a herculean task, so I wanted to see how
           performant using CSS as a behind-the-scenes layout engine would be, so
-          we could just re-use the CSS directly. The code is{" "}
+          we could just re-use the WrappingRow, DistinctFieldValues CSS during
+          whiteboard import. The code is{" "}
           <a
             href="https://github.com/gleasonw/test-layout/blob/main/src/layoutEngine.ts#L45"
             target="_blank"
