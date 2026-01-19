@@ -476,7 +476,7 @@ export function LayoutDemo() {
         </div>
       </div>
 
-      <div className="flex gap-5">
+      <div className="flex gap-5 flex-wrap lg:flex-nowrap">
         <div className="flex flex-col gap-5">
           <div className="border shadow-lg p-3">
             {/* Shapes Panel */}
