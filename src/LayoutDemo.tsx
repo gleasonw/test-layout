@@ -336,7 +336,7 @@ export function LayoutDemo() {
       setEnableMultiLevel(true);
       // Bump up child card range for better multi-level showcase
       setSubCardMin(3);
-      setSubCardMax(8);
+      setSubCardMax(25);
       // Set variable dimension constraint for responsive sizing (nested cards always use fixed)
       if (
         presetKey === "rowResponsiveParents" ||
