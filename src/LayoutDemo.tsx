@@ -387,15 +387,17 @@ export function LayoutDemo() {
           whiteboard.{" "}
         </p>
         <p>
-          With templates, all we have is an array of data, and then item
-          card/slide card dimension constraints. During template render, we rely
-          on CSS declarations to handle the positioning of item cards inside a
-          slide. When we move templated data into the whiteboard, though, we'll
-          have to declare each item card's position and make sure it matches the
-          CSS from the template shapes (WrappingRow, DistinctFieldValues).
-          Reproducing CSS outputs for the whiteboard would be a huge pain, so I
-          wanted to see how performant using CSS as a behind-the-scenes layout
-          engine would be, so we could just re-use the CSS directly. The code is{" "}
+          With templates, all we have is an array of data and dimension
+          constraints for the card, slide, and optionally group cards. During
+          template render, we rely on CSS declarations to position the item
+          cards inside a slide or group card. When we move templated data into
+          the whiteboard, though, we'll have to know each item card's x,y
+          position and width, height. These values must match the CSS output we
+          get during render from the template layout shapes (WrappingRow,
+          DistinctFieldValues). Manually reproducing CSS outputs for the
+          whiteboard would be a herculean task, so I wanted to see how
+          performant using CSS as a behind-the-scenes layout engine would be, so
+          we could just re-use the CSS directly. The code is{" "}
           <a
             href="https://github.com/gleasonw/test-layout/blob/main/src/layoutEngine.ts#L45"
             target="_blank"
@@ -418,7 +420,11 @@ export function LayoutDemo() {
           </a>{" "}
           that works on positioned shape outputs. It seems to work well, but I
           would want to have a full test suite in place before relying on it too
-          much.
+          much. Performance is good even with many 1,000s of shapes, which is a
+          good sign. These layout functions would only need to run once per
+          import, so a 20ms function call isn't too expensive. We'll see! I just
+          wanted to get this demo out, partly because it's interesting to see
+          how flex works.
         </p>
       </div>
 
