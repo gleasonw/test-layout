@@ -399,7 +399,7 @@ export function LayoutDemo() {
           <a
             href="https://github.com/gleasonw/test-layout/blob/main/src/layoutEngine.ts#L45"
             target="_blank"
-            className="underline"
+            className="underline text-blue-600"
           >
             here.
           </a>
@@ -408,9 +408,17 @@ export function LayoutDemo() {
           If we wanted to go further and actually expose the CSS to the user in
           the template manager, the complication for templates is slide
           splitting. Flex has no idea how to split up data vertically. With a
-          big assist from Claude Opus, I put together a splitting algorithm that
-          works on positioned shape outputs. It seems to work well, but I would
-          want to have a full test suite in place before relying on it too much.
+          big assist from Claude Opus, I put together a{" "}
+          <a
+            href="https://github.com/gleasonw/test-layout/blob/main/src/splitEngine.ts#L7"
+            target="_blank"
+            className="underline text-blue-600"
+          >
+            splitting algorithm
+          </a>{" "}
+          that works on positioned shape outputs. It seems to work well, but I
+          would want to have a full test suite in place before relying on it too
+          much.
         </p>
       </div>
 
