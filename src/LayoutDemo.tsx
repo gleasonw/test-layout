@@ -390,12 +390,12 @@ export function LayoutDemo() {
           With templates, all we have is an array of data, and then item
           card/slide card dimension constraints. Normally, during render, we
           rely on the JSX and CSS declarations to handle the positioning of item
-          cards. When we move items in bulk into the whiteboard, though, we'll
-          have to declare each shape's position and make sure it matches the CSS
-          from the template shapes (WrappingRow, DistinctFieldValues).
-          Reproducing CSS outputs for the whiteboard would be a huge pain in the
-          butt, so I wanted to see how performant using CSS as a
-          behind-the-scenes layout engine would be. The code is{" "}
+          cards. When we move templated data into the whiteboard, though, we'll
+          have to declare each item card's position and make sure it matches the
+          CSS from the template shapes (WrappingRow, DistinctFieldValues).
+          Reproducing CSS outputs for the whiteboard would be a huge pain, so I
+          wanted to see how performant using CSS as a behind-the-scenes layout
+          engine would be, so we could just re-use the CSS directly. The code is{" "}
           <a
             href="https://github.com/gleasonw/test-layout/blob/main/src/layoutEngine.ts#L45"
             target="_blank"
