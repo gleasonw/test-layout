@@ -89,6 +89,9 @@ export function LayoutDemo() {
   const [parentCardCss, setParentCardCss] = useState(
     flexPresets.wrappedRowAlignStart.child
   );
+  const [childContainerCss, setChildContainerCss] = useState(
+    flexPresets.wrappedRowAlignStart.childContainer
+  );
   const [subCardCss, setSubCardCss] = useState("");
 
   // Camera state for panning and zooming
@@ -176,6 +179,7 @@ export function LayoutDemo() {
         containerBox,
         containerCss,
         parentCss: parentCardCss,
+        childContainerCss: childContainerCss || undefined,
         childCss: subCardCss,
         parentDimensionConstraint: shapeDimensionConstraint,
         childDimensionConstraint: "fixed",
@@ -210,6 +214,7 @@ export function LayoutDemo() {
     parentCardCss,
     subCardCss,
     shapeDimensionConstraint,
+    childContainerCss,
   ]);
 
   // Optional split pipeline step - split positioned shapes into slides
@@ -323,6 +328,7 @@ export function LayoutDemo() {
     const preset = flexPresets[presetKey as keyof typeof flexPresets];
     setContainerCss(preset.container);
     setChildCss(preset.child);
+    setChildContainerCss(preset.childContainer || "");
 
     // Multi-card layout presets - enable multi-level mode and adjust settings
     const multiCardPresets = [
@@ -330,6 +336,9 @@ export function LayoutDemo() {
       "columnResponsiveParents",
       "rowOverlappingChildren",
       "columnStack",
+      "childrenBottomOffset",
+      "childrenRightOffset",
+      "childrenAtPosition",
     ];
 
     if (multiCardPresets.includes(presetKey)) {
@@ -341,7 +350,10 @@ export function LayoutDemo() {
       if (
         presetKey === "rowResponsiveParents" ||
         presetKey === "columnResponsiveParents" ||
-        presetKey === "rowOverlappingChildren"
+        presetKey === "rowOverlappingChildren" ||
+        presetKey === "childrenBottomOffset" ||
+        presetKey === "childrenRightOffset" ||
+        presetKey === "childrenAtPosition"
       ) {
         setShapeDimensionConstraint("variable");
       } else {
@@ -695,6 +707,32 @@ export function LayoutDemo() {
                 }
                 rows={3}
               />
+
+              {/* Child Container (wrapper) - only when multi-level enabled */}
+              {enableMultiLevel && (
+                <div className="flex flex-col gap-3 pl-4 mt-2 border-l-4 border-purple-300">
+                  <label className="font-bold text-base">
+                    Child Container (wrapper)
+                  </label>
+
+                  <div className="text-xs text-gray-600 bg-purple-50 p-2 rounded">
+                    💡 Position the child container using margin-top and
+                    margin-left (works like x,y coordinates while keeping parent
+                    auto-sizing)
+                  </div>
+
+                  <label className="text-sm font-medium">
+                    Child Container CSS
+                  </label>
+                  <textarea
+                    className="border rounded p-2 font-mono text-xs"
+                    value={childContainerCss}
+                    onChange={(e) => setChildContainerCss(e.target.value)}
+                    placeholder="e.g., margin-top: 30px; margin-left: 20px; display: flex; gap: 5px;"
+                    rows={3}
+                  />
+                </div>
+              )}
 
               {/* Nested Card (Level 2) - only when multi-level enabled */}
               {enableMultiLevel && (
