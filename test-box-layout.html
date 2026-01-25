@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Box Layout Test</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .test { margin-bottom: 30px; }
+    .result { background: #f0f0f0; padding: 10px; margin-top: 10px; }
+    .box { 
+      position: absolute; 
+      border: 2px solid #333; 
+      background: rgba(100, 150, 200, 0.3);
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <h1>Box Layout Engine Test</h1>
+  
+  <div class="test">
+    <h2>Test 1: Simple Wrapped Row</h2>
+    <div id="test1-result" class="result"></div>
+    <div id="test1-canvas" style="position: relative; width: 600px; height: 400px; border: 2px solid black; margin-top: 10px;"></div>
+  </div>
+
+  <div class="test">
+    <h2>Test 2: Multi-Level with Children</h2>
+    <div id="test2-result" class="result"></div>
+    <div id="test2-canvas" style="position: relative; width: 600px; height: 400px; border: 2px solid black; margin-top: 10px;"></div>
+  </div>
+
+  <script type="module">
+    // Import the layout engine
+    import { layoutBoxes, presets } from './public/chunk-9thgpte2.js';
+
+    // Test 1: Simple wrapped row
+    console.log('Test 1: Simple wrapped row layout');
+    const boxes1 = [
+      { id: 'box1', width: 100, height: 50, css: '', constraint: 'fixed', color: 'red' },
+      { id: 'box2', width: 100, height: 50, css: '', constraint: 'fixed', color: 'blue' },
+      { id: 'box3', width: 100, height: 50, css: '', constraint: 'fixed', color: 'green' },
+    ];
+
+    const boxTree1 = presets.wrappedRowAlignStart(boxes1, {
+      containerWidth: 600,
+      containerHeight: 400
+    });
+
+    const positioned1 = layoutBoxes(boxTree1);
+    const rootBox1 = positioned1[0];
+    const content1 = rootBox1.children || [];
+
+    document.getElementById('test1-result').innerHTML = 
+      `✅ Positioned ${content1.length} boxes<br>` +
+      content1.map(b => `Box ${b.id}: (${b.x}, ${b.y}) ${b.width}x${b.height}`).join('<br>');
+
+    // Render boxes
+    const canvas1 = document.getElementById('test1-canvas');
+    content1.forEach(box => {
+      const div = document.createElement('div');
+      div.className = 'box';
+      div.style.left = box.x + 'px';
+      div.style.top = box.y + 'px';
+      div.style.width = box.width + 'px';
+      div.style.height = box.height + 'px';
+      div.style.background = box.color;
+      div.textContent = box.id;
+      canvas1.appendChild(div);
+    });
+
+    // Test 2: Multi-level with children
+    console.log('Test 2: Multi-level layout');
+    const boxes2 = [
+      {
+        id: 'parent1',
+        width: 120,
+        height: 100,
+        css: '',
+        constraint: 'variable',
+        color: 'lightblue',
+        children: [
+          { id: 'child1', width: 30, height: 30, css: '', constraint: 'fixed', color: 'pink' },
+          { id: 'child2', width: 30, height: 30, css: '', constraint: 'fixed', color: 'yellow' },
+        ]
+      },
+      {
+        id: 'parent2',
+        width: 120,
+        height: 100,
+        css: '',
+        constraint: 'variable',
+        color: 'lightgreen',
+        children: [
+          { id: 'child3', width: 30, height: 30, css: '', constraint: 'fixed', color: 'orange' },
+        ]
+      }
+    ];
+
+    const boxTree2 = presets.rowResponsiveParents(boxes2, {
+      containerWidth: 600,
+      containerHeight: 400
+    });
+
+    const positioned2 = layoutBoxes(boxTree2);
+    const rootBox2 = positioned2[0];
+    const content2 = rootBox2.children || [];
+
+    document.getElementById('test2-result').innerHTML = 
+      `✅ Positioned ${content2.length} parent boxes<br>` +
+      content2.map(p => 
+        `Parent ${p.id}: (${p.x}, ${p.y}) ${p.width}x${p.height} with ${p.children?.length || 0} children`
+      ).join('<br>');
+
+    // Render parent boxes and children
+    const canvas2 = document.getElementById('test2-canvas');
+    content2.forEach(parent => {
+      const parentDiv = document.createElement('div');
+      parentDiv.className = 'box';
+      parentDiv.style.left = parent.x + 'px';
+      parentDiv.style.top = parent.y + 'px';
+      parentDiv.style.width = parent.width + 'px';
+      parentDiv.style.height = parent.height + 'px';
+      parentDiv.style.background = parent.color;
+      parentDiv.textContent = parent.id;
+      canvas2.appendChild(parentDiv);
+
+      // Render children
+      if (parent.children) {
+        parent.children.forEach(child => {
+          const childDiv = document.createElement('div');
+          childDiv.className = 'box';
+          childDiv.style.left = (parent.x + child.x) + 'px';
+          childDiv.style.top = (parent.y + child.y) + 'px';
+          childDiv.style.width = child.width + 'px';
+          childDiv.style.height = child.height + 'px';
+          childDiv.style.background = child.color;
+          childDiv.textContent = child.id;
+          canvas2.appendChild(childDiv);
+        });
+      }
+    });
+
+    console.log('✅ All tests completed!');
+  </script>
+</body>
+</html>

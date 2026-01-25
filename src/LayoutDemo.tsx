@@ -86,6 +86,9 @@ export function LayoutDemo() {
   const [subCardMax, setSubCardMax] = useState(5);
   const [subCardWidth, setSubCardWidth] = useState(25);
   const [subCardHeight, setSubCardHeight] = useState(50);
+  const [parentContainerCss, setParentContainerCss] = useState(
+    flexPresets.wrappedRowAlignStart.parentContainer
+  );
   const [parentCardCss, setParentCardCss] = useState(
     flexPresets.wrappedRowAlignStart.child
   );
@@ -155,10 +158,11 @@ export function LayoutDemo() {
   ]);
 
   // Calculate positioned shapes (computed output)
-  const { positionedShapes, calculationTime } = useMemo(() => {
+  const { positionedShapes, parentContainerOffset, calculationTime } = useMemo(() => {
     if (shapes.length === 0) {
       return {
         positionedShapes: [],
+        parentContainerOffset: { x: 0, y: 0 },
         calculationTime: 0,
       };
     }
@@ -171,19 +175,23 @@ export function LayoutDemo() {
     const startTime = performance.now();
 
     let positionedShapes: PositionedShape[];
+    let parentContainerOffset = { x: 0, y: 0 };
 
     if (enableMultiLevel) {
       // Use multi-level layout function
-      positionedShapes = getPositionedShapesWithChildren({
+      const result = getPositionedShapesWithChildren({
         shapes: shapesWithChildren,
         containerBox,
         containerCss,
+        parentContainerCss: parentContainerCss || undefined,
         parentCss: parentCardCss,
         childContainerCss: childContainerCss || undefined,
         childCss: subCardCss,
         parentDimensionConstraint: shapeDimensionConstraint,
         childDimensionConstraint: "fixed",
       });
+      positionedShapes = result.shapes;
+      parentContainerOffset = result.parentContainerOffset;
     } else {
       // Use standard single-level layout
       positionedShapes = getPositionedShapes({
@@ -200,6 +208,7 @@ export function LayoutDemo() {
 
     return {
       positionedShapes,
+      parentContainerOffset,
       calculationTime: calcTime,
       actualHeight: containerHeight,
     };
@@ -211,6 +220,7 @@ export function LayoutDemo() {
     containerHeight,
     containerCss,
     childCss,
+    parentContainerCss,
     parentCardCss,
     subCardCss,
     shapeDimensionConstraint,
@@ -226,7 +236,8 @@ export function LayoutDemo() {
     // Split the positioned shapes into normalized slides
     const normalizedSlides = splitShapesIntoBoxes({
       shapes: positionedShapes,
-      box: { width: containerWidth, height: containerHeight },
+      slideBox: { width: containerWidth, height: containerHeight },
+      parentContainerOffset: parentContainerOffset,
     });
 
     console.log({ normalizedSlides });
@@ -238,7 +249,7 @@ export function LayoutDemo() {
       containerHeight,
       50
     );
-  }, [enableSplitting, positionedShapes, containerWidth, containerHeight]);
+  }, [enableSplitting, positionedShapes, parentContainerOffset, containerWidth, containerHeight]);
 
   // Pan interaction handlers
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -329,6 +340,7 @@ export function LayoutDemo() {
     setContainerCss(preset.container);
     setChildCss(preset.child);
     setChildContainerCss(preset.childContainer || "");
+    setParentContainerCss(preset.parentContainer || "");
 
     // Multi-card layout presets - enable multi-level mode and adjust settings
     const multiCardPresets = [
@@ -642,6 +654,31 @@ export function LayoutDemo() {
                 placeholder="Container layout CSS..."
               />
             </div>
+
+            {/* Parent Layout Container (wrapper) - only when multi-level enabled */}
+            {enableMultiLevel && (
+              <div className="flex flex-col gap-3 pl-4 border-l-4 border-orange-300">
+                <label className="font-bold text-base">
+                  WrapLayoutContainer
+                </label>
+
+                <div className="text-xs text-gray-600 bg-orange-50 p-2 rounded">
+                  💡 Position the entire parent card layout using margin-top and
+                  margin-left to offset from the slide container
+                </div>
+
+                <label className="text-sm font-medium">
+                  Parent Container CSS
+                </label>
+                <textarea
+                  className="border rounded p-2 font-mono text-xs"
+                  value={parentContainerCss}
+                  onChange={(e) => setParentContainerCss(e.target.value)}
+                  placeholder="e.g., margin-top: 20px; margin-left: 30px; display: flex; gap: 15px; flex-wrap: wrap;"
+                  rows={3}
+                />
+              </div>
+            )}
 
             {/* Parent Card (Level 1) */}
             <div className="flex flex-col gap-3 pl-4 border-l-4 border-blue-300">

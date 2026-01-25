@@ -33,6 +33,11 @@ export interface LayoutResult {
   shapes: PositionedShape[];
 }
 
+export interface LayoutResultWithOffset {
+  shapes: PositionedShape[];
+  parentContainerOffset: { x: number; y: number };
+}
+
 /**
  * Main layout engine function
  *
@@ -160,24 +165,28 @@ export const flexPresets = {
       "display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; align-content: flex-start;",
     child: "",
     childContainer: "",
+    parentContainer: "",
   },
   autoExpandingCards: {
     container:
       "display: flex; flex-direction: row; flex-wrap: wrap; gap:10px; align-content: flex-start",
     child: "flex-grow: 1; min-width: 50px; height: 50px;",
     childContainer: "",
+    parentContainer: "",
   },
   wrappedRowCentered: {
     container:
       "display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center;",
     child: "",
     childContainer: "",
+    parentContainer: "",
   },
   overlappingCards: {
     container:
       "display: flex; flex-direction: row; flex-wrap: wrap; padding-left: 20px; align-items: flex-start;",
     child: "margin-left: -10px;",
     childContainer: "",
+    parentContainer: "",
   },
   // Multi-level layout presets showcasing nested card functionality
   rowResponsiveParents: {
@@ -185,18 +194,21 @@ export const flexPresets = {
       "display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; align-items: flex-start;",
     child: "padding: 5px;",
     childContainer: "",
+    parentContainer: "",
   },
   columnResponsiveParents: {
     container:
       "display: flex; flex-direction: column; gap: 15px; align-items: flex-start;",
     child: "padding: 5px;",
     childContainer: "",
+    parentContainer: "",
   },
   rowOverlappingChildren: {
     container:
       "display: flex; flex-direction: row; gap: 12px; flex-wrap: wrap; align-items: flex-start;",
     child: "margin-left: -20px;",
     childContainer: "",
+    parentContainer: "",
   },
   // NEW: Child container positioning presets
   childrenBottomOffset: {
@@ -204,18 +216,21 @@ export const flexPresets = {
       "display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; align-items: flex-start;",
     child: "display: flex; flex-direction: column; padding: 10px;",
     childContainer: "margin-top: 40px; display: flex; gap: 5px; flex-wrap: wrap;",
+    parentContainer: "",
   },
   childrenRightOffset: {
     container:
       "display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; align-items: flex-start;",
     child: "display: flex; flex-direction: column; padding: 10px;",
     childContainer: "margin-left: 30px; display: flex; gap: 5px; flex-wrap: wrap;",
+    parentContainer: "",
   },
   childrenAtPosition: {
     container:
       "display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; align-items: flex-start;",
     child: "display: flex; flex-direction: column; padding: 10px; min-height: 120px;",
     childContainer: "margin-top: 50px; margin-left: 50px; display: flex; gap: 5px; flex-wrap: wrap;",
+    parentContainer: "",
   },
 };
 
@@ -228,6 +243,7 @@ export const flexPresets = {
  * @param shapes - Array of shapes that may contain children
  * @param containerBox - Container dimensions for top-level shapes
  * @param containerCss - CSS for the main container
+ * @param parentContainerCss - Optional CSS to apply to the wrapper element that contains all parent cards
  * @param parentCss - CSS to apply to parent (L1) cards as containers
  * @param childContainerCss - Optional CSS to apply to the wrapper element that contains all children
  * @param childCss - CSS to apply to child (L2) cards
@@ -239,16 +255,18 @@ export function getPositionedShapesWithChildren(args: {
   shapes: Shape[];
   containerBox: ContainerBox;
   containerCss: string;
+  parentContainerCss?: string;
   parentCss: string;
   childContainerCss?: string;
   childCss: string;
   parentDimensionConstraint: "fixed" | "variable";
   childDimensionConstraint: "fixed" | "variable";
-}): PositionedShape[] {
+}): LayoutResultWithOffset {
   const {
     shapes,
     containerBox,
     containerCss,
+    parentContainerCss,
     parentCss,
     childContainerCss,
     childCss,
@@ -258,11 +276,11 @@ export function getPositionedShapesWithChildren(args: {
 
   // Validation
   if (!shapes || shapes.length === 0) {
-    return [];
+    return { shapes: [], parentContainerOffset: { x: 0, y: 0 } };
   }
 
   if (containerBox.width <= 0 || containerBox.height <= 0) {
-    return [];
+    return { shapes: [], parentContainerOffset: { x: 0, y: 0 } };
   }
 
   // Create detached container for top-level layout
@@ -280,6 +298,14 @@ export function getPositionedShapesWithChildren(args: {
   container.style.left = "-10000px";
   container.style.visibility = "hidden";
   container.style.pointerEvents = "none";
+
+  // Create parent layout container wrapper if parentContainerCss is provided
+  let parentLayoutContainer: HTMLDivElement | undefined;
+  if (parentContainerCss) {
+    parentLayoutContainer = document.createElement("div");
+    parentLayoutContainer.style.cssText = parentContainerCss;
+    parentLayoutContainer.style.boxSizing = "border-box";
+  }
 
   // Create parent elements with nested children
   const parentElements: Array<{
@@ -358,9 +384,20 @@ export function getPositionedShapesWithChildren(args: {
       }
     }
 
-    container.appendChild(parentElement);
+    // Append to parent layout container if it exists, otherwise to main container
+    if (parentLayoutContainer) {
+      parentLayoutContainer.appendChild(parentElement);
+    } else {
+      container.appendChild(parentElement);
+    }
+    
     parentElements.push({ parentElement, childContainerElement, childElements, shape });
   });
+
+  // Append parent layout container to main container if it was created
+  if (parentLayoutContainer) {
+    container.appendChild(parentLayoutContainer);
+  }
 
   // Temporarily append to DOM to trigger layout calculation
   document.body.appendChild(container);
@@ -371,14 +408,32 @@ export function getPositionedShapesWithChildren(args: {
   // Get container's bounding rect for reference
   const containerRect = container.getBoundingClientRect();
 
+  // Calculate parent layout container offset if it exists
+  let parentContainerOffsetX = 0;
+  let parentContainerOffsetY = 0;
+  
+  if (parentLayoutContainer) {
+    const parentLayoutRect = parentLayoutContainer.getBoundingClientRect();
+    parentContainerOffsetX = parentLayoutRect.left - containerRect.left;
+    parentContainerOffsetY = parentLayoutRect.top - containerRect.top;
+  }
+
   // Calculate positions for each parent and its children
   const positionedShapes: PositionedShape[] = parentElements.map(
     ({ parentElement, childContainerElement, childElements, shape }) => {
       const parentRect = parentElement.getBoundingClientRect();
 
-      // Calculate parent position relative to container
-      const parentX = parentRect.left - containerRect.left;
-      const parentY = parentRect.top - containerRect.top;
+      // Calculate parent position relative to parent layout container (if exists) or main container
+      const referenceRect = parentLayoutContainer 
+        ? parentLayoutContainer.getBoundingClientRect()
+        : containerRect;
+      
+      const parentXRelativeToReference = parentRect.left - referenceRect.left;
+      const parentYRelativeToReference = parentRect.top - referenceRect.top;
+      
+      // Bake in parent container offset to make position container-relative
+      const parentX = parentXRelativeToReference + parentContainerOffsetX;
+      const parentY = parentYRelativeToReference + parentContainerOffsetY;
 
       const parentWidth =
         parentDimensionConstraint === "fixed" ? shape.width : parentRect.width;
@@ -450,5 +505,8 @@ export function getPositionedShapesWithChildren(args: {
   // Cleanup - remove from DOM
   document.body.removeChild(container);
 
-  return positionedShapes;
+  return {
+    shapes: positionedShapes,
+    parentContainerOffset: { x: parentContainerOffsetX, y: parentContainerOffsetY },
+  };
 }

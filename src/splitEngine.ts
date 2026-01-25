@@ -2,15 +2,20 @@ import type { ContainerBox, PositionedShape } from "@/layoutEngine";
 
 export type NormalizedSlide = {
   shapes: Array<PositionedShape>;
+  parentContainerOffset: { x: number; y: number };
 };
 
 export function splitShapesIntoBoxes(args: {
   shapes: Array<PositionedShape>;
-  box: ContainerBox;
+  slideBox: ContainerBox;
+  parentContainerOffset?: { x: number; y: number };
   rowEpsilonPx?: number;
 }) {
-  const { shapes, box, rowEpsilonPx = 1 } = args;
+  const { shapes, slideBox, parentContainerOffset = { x: 0, y: 0 }, rowEpsilonPx = 1 } = args;
   if (shapes.length === 0) return [];
+
+  // Available height for layout (accounting for parent container offset from top)
+  const maxLayoutHeight = slideBox.height - parentContainerOffset.y;
 
   // stable ordering
   const sorted = [...shapes].sort((a, b) => {
@@ -47,25 +52,31 @@ export function splitShapesIntoBoxes(args: {
   function flush() {
     if (activeRows.length === 0) return;
 
-    // Normalize all shapes by translating them relative to the slide's (0, 0) origin
-    // Since the container's left edge is at x=0, we don't need to translate X
-    // We only translate Y by subtracting slideTop (the Y position where this slide starts)
+    // Normalize shapes while preserving parent container offset
+    // Parent cards should maintain their position relative to the parent container
+    // which itself maintains its offset from the slide origin
     const normalizedShapes = activeRows.flatMap((r) =>
       r.shapes.map((s) => ({
         ...s,
-        x: s.x, // Keep X position unchanged
-        y: s.y - slideTop, // Translate Y to be relative to slide origin
+        // Preserve X position (already includes parent container offset)
+        x: s.x,
+        // Translate Y to slide origin, then add back parent container offset
+        // This keeps parent cards at the same offset in each slide
+        y: s.y - slideTop + parentContainerOffset.y,
       }))
     );
 
-    slides.push({ shapes: normalizedShapes });
+    slides.push({ 
+      shapes: normalizedShapes,
+      parentContainerOffset: parentContainerOffset,
+    });
     activeRows = [];
   }
 
   for (const row of rows) {
     const neededHeight = row.bottom - slideTop;
 
-    if (activeRows.length > 0 && neededHeight > box.height) {
+    if (activeRows.length > 0 && neededHeight > maxLayoutHeight) {
       flush();
       slideTop = row.top;
     }
