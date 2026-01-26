@@ -543,7 +543,7 @@ function Whiteboard({
   // Camera state for panning and zooming
   const [cameraX, setCameraX] = useState(0);
   const [cameraY, setCameraY] = useState(0);
-  const [zoom, setZoom] = useState(0.75);
+  const [zoom, setZoom] = useState(0.25);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
     null
