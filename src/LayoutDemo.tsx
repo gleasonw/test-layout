@@ -523,6 +523,7 @@ export function LayoutDemo() {
                   wrapLayoutShape ? (
                     <Box
                       box={getTranslatedBox(
+                        //TODO: why not just have the wrapLayoutSHape hold onto the split items?
                         { ...wrapLayoutShape, children: undefined },
                         [slide.x, slide.y]
                       )}
