@@ -1,10 +1,12 @@
-import type { PositionedBox, Box } from "@/layoutEngine";
+import type { PositionedCanvasBox, Box } from "@/layoutEngine";
 
-type PositionedBoxRelativeToSlide = PositionedBox & { brand: "__relative" };
+type PositionedBoxRelativeToSlide = PositionedCanvasBox & {
+  brand: "__relative";
+};
 export function getTranslatedBox(
-  b: PositionedBox,
+  b: PositionedCanvasBox,
   translateVec: [number, number]
-): PositionedBox {
+): PositionedCanvasBox {
   return {
     ...b,
     x: b.x + translateVec[0],
@@ -14,10 +16,10 @@ export function getTranslatedBox(
 }
 
 export function splitChildrenOfRootBox(args: {
-  rootBox: PositionedBox;
+  rootBox: PositionedCanvasBox;
   /**y-value tolerance for putting boxes into the same row  */
   rowEpsilonPx?: number;
-}): Array<Array<PositionedBox>> | null {
+}): Array<Array<PositionedCanvasBox>> | null {
   const { rootBox: positionedBox, rowEpsilonPx = 1 } = args;
 
   const boxesToSplit = positionedBox.children;
@@ -33,7 +35,7 @@ export function splitChildrenOfRootBox(args: {
   type Row = {
     top: number;
     bottom: number;
-    boxes: Array<PositionedBox>;
+    boxes: Array<PositionedCanvasBox>;
   };
 
   const rows: Array<Row> = [];
@@ -51,7 +53,7 @@ export function splitChildrenOfRootBox(args: {
     }
   }
 
-  const slides: Array<Array<PositionedBox>> = [];
+  const slides: Array<Array<PositionedCanvasBox>> = [];
 
   let activeRows: Array<Row> = [];
   let upperRowEdge = 0;

@@ -14,28 +14,33 @@ type BoxType =
   | "Group Card"
   | "Slides Container";
 
-// Type Definitions
 export interface Box {
   id: string;
   type: BoxType;
+  /**for spot checking that we haven't lost any cards... long term, we should add unit tests */
+  tag?: number;
   css: string;
   children?: Box[];
 }
 
-export interface PositionedBox {
+/**in some canvas space */
+export interface PositionedCanvasBox {
   id: string;
   x: number;
   y: number;
   width: number;
   type: BoxType;
+  tag?: Box["tag"];
   height: number;
   color?: string;
-  children?: PositionedBox[];
+  children?: PositionedCanvasBox[];
 }
 
 //unresolved questions: do we need to worry about overrides from document css?
 
-export function getPositionedBoxes(args: { rootBox: Box }): PositionedBox {
+export function getPositionedBoxes(args: {
+  rootBox: Box;
+}): PositionedCanvasBox {
   const { rootBox } = args;
   // Create detached container
   const container = document.createElement("div");
@@ -116,13 +121,14 @@ function getPositionsForBox(
       style: React.CSSProperties;
     }
   >
-): PositionedBox {
+): PositionedCanvasBox {
   const positionedBox = boxToPositions[box.id];
   return {
     ...positionedBox,
     children: box.children?.map((b) => getPositionsForBox(b, boxToPositions)),
     id: box.id,
     type: box.type,
+    tag: box.tag,
   };
 }
 

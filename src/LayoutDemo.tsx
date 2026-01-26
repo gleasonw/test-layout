@@ -3,7 +3,7 @@ import {
   getPositionedBoxes,
   flexPresets,
   Box,
-  PositionedBox,
+  PositionedCanvasBox,
 } from "./layoutEngine";
 import React from "react";
 import { getTranslatedBox, splitChildrenOfRootBox } from "@/splitEngine";
@@ -52,6 +52,7 @@ export function LayoutDemo() {
 
   const enableMultiLevel = subCardMax > 0;
 
+  let totalLeafCards = 0;
   const rootSlideBox: Box = {
     id: `root-slide`,
     css: slideCss,
@@ -65,6 +66,7 @@ export function LayoutDemo() {
           id: `top-level-card-${i}`,
           css: topLevelCardCss,
           type: enableMultiLevel ? "Group Card" : "Card",
+          tag: i,
           children: enableMultiLevel
             ? [
                 {
@@ -72,11 +74,15 @@ export function LayoutDemo() {
                   type: "Distinct Field Values",
                   children: Array.from(
                     { length: randomInRange(subCardMin, subCardMax) },
-                    (_, j) => ({
-                      id: `top-level-card-${i}-distinct-values-child-${j}`,
-                      css: secondLevelCardCss,
-                      type: "Card",
-                    })
+                    (_, j) => {
+                      totalLeafCards += 1;
+                      return {
+                        id: `top-level-card-${i}-distinct-values-child-${j}`,
+                        css: secondLevelCardCss,
+                        type: "Card",
+                        tag: totalLeafCards,
+                      };
+                    }
                   ),
                   css: distinctFieldValuesCss,
                 },
@@ -582,7 +588,7 @@ function getBoxStyles(type: string) {
   }
 }
 
-function Box(props: { box: PositionedBox; tagNumber: number }) {
+function Box(props: { box: PositionedCanvasBox; tagNumber: number }) {
   const { box, tagNumber } = props;
   const styles = getBoxStyles(box.type ?? "");
 
@@ -603,7 +609,7 @@ function Box(props: { box: PositionedBox; tagNumber: number }) {
         }}
         className={styles.className}
       >
-        {box.type ?? ""} {tagNumber}
+        {box.type ?? ""} {box.tag}
       </div>
       {box.children?.map((childBox, i) => (
         <Box key={childBox.id} box={childBox} tagNumber={tagNumber + i} />
