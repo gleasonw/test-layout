@@ -393,76 +393,100 @@ export function LayoutDemo() {
 
           {/* Template Layout Inputs Section */}
           <div className="flex flex-col gap-6 flex-wrap border shadow-lg p-3">
-            <div className="flex-1 min-w-[300px]">
+            <div className="flex-1">
               <h2 className="text-xl font-semibold">Template Layout Inputs</h2>
             </div>
 
-            {/* Container (Slide) */}
-            <div className="flex flex-col gap-3">
-              <label className="font-bold text-base">Slide</label>
+            {/* Slide - wraps all children */}
+            <div className="flex flex-col gap-3 pl-4 border-l-2 border-purple-600">
+              <label className="font-bold text-base text-purple-700">
+                Slide
+              </label>
               <textarea
                 value={slideCss}
                 onChange={(e) => setSlideCss(e.target.value)}
-                className="border rounded p-2 font-mono text-xs"
+                className="border rounded p-2 font-mono text-xs bg-purple-50"
                 rows={3}
                 placeholder="Container layout CSS..."
               />
-            </div>
 
-            <div className="flex flex-col gap-3 pl-4 border-l-4 border-orange-300">
-              <label className="font-bold text-base">Wrapping Row</label>
-              <textarea
-                className="border rounded p-2 font-mono text-xs"
-                value={wrappingLayoutContainerCss}
-                onChange={(e) => setWrappingLayoutContainerCss(e.target.value)}
-                placeholder="e.g., margin-top: 20px; margin-left: 30px; display: flex; gap: 15px; flex-wrap: wrap;"
-                rows={3}
-              />
-            </div>
+              {/* Wrapping Row (child of Slide) */}
+              <div className="flex flex-col gap-3 pl-4 border-l-2 border-orange-500">
+                <label className="font-bold text-base text-orange-700">
+                  Wrapping Row
+                </label>
+                <textarea
+                  className="border rounded p-2 font-mono text-xs bg-orange-50"
+                  value={wrappingLayoutContainerCss}
+                  onChange={(e) =>
+                    setWrappingLayoutContainerCss(e.target.value)
+                  }
+                  placeholder="e.g., margin-top: 20px; margin-left: 30px; display: flex; gap: 15px; flex-wrap: wrap;"
+                  rows={3}
+                />
 
-            <div className="flex flex-col gap-3 pl-4 border-l-4 border-blue-300">
-              <label className="font-bold text-base">
-                {enableMultiLevel ? "Group card" : "Card"}
-              </label>
-              <textarea
-                className="border rounded p-2 font-mono text-xs"
-                value={topLevelCardCss}
-                onChange={(e) => setTopLevelCardCss(e.target.value)}
-                placeholder={
-                  enableMultiLevel
-                    ? "e.g., display: flex; gap: 10px; flex-wrap: wrap;"
-                    : "e.g., align-self: flex-end; margin: 5px;"
-                }
-                rows={3}
-              />
-
-              {enableMultiLevel && (
-                <div className="flex flex-col gap-3 pl-4 mt-2 border-l-4 border-purple-300">
-                  <label className="font-bold text-base">
-                    Distinct Field Values
+                {/* Group Card or Card (child of Wrapping Row) */}
+                <div
+                  className={`flex flex-col gap-3 pl-4 border-l-2 ${
+                    enableMultiLevel ? "border-blue-500" : "border-gray-400"
+                  }`}
+                >
+                  <label
+                    className={`font-bold text-base ${
+                      enableMultiLevel ? "text-blue-700" : "text-gray-700"
+                    }`}
+                  >
+                    {enableMultiLevel ? "Group Card" : "Card"}
                   </label>
                   <textarea
-                    className="border rounded p-2 font-mono text-xs"
-                    value={distinctFieldValuesCss}
-                    onChange={(e) => setDistinctFieldValuesCss(e.target.value)}
-                    placeholder="e.g., margin-top: 30px; margin-left: 20px; display: flex; gap: 5px;"
+                    className={`border rounded p-2 font-mono text-xs ${
+                      enableMultiLevel ? "bg-blue-50" : "bg-white"
+                    }`}
+                    value={topLevelCardCss}
+                    onChange={(e) => setTopLevelCardCss(e.target.value)}
+                    placeholder={
+                      enableMultiLevel
+                        ? "e.g., display: flex; gap: 10px; flex-wrap: wrap;"
+                        : "e.g., align-self: flex-end; margin: 5px;"
+                    }
                     rows={3}
                   />
-                </div>
-              )}
 
-              {enableMultiLevel && (
-                <div className="flex flex-col gap-3 pl-4 mt-2 border-l-4 border-green-300">
-                  <label className="font-bold text-base">Card</label>
-                  <textarea
-                    className="border rounded p-2 font-mono text-xs"
-                    value={secondLevelCardCss}
-                    onChange={(e) => setSecondLevelCardCss(e.target.value)}
-                    placeholder="CSS for nested cards..."
-                    rows={3}
-                  />
+                  {/* Distinct Field Values (child of Group Card) */}
+                  {enableMultiLevel && (
+                    <div className="flex flex-col gap-3 pl-4 border-l-2 border-green-500">
+                      <label className="font-bold text-base text-green-700">
+                        Distinct Field Values
+                      </label>
+                      <textarea
+                        className="border rounded p-2 font-mono text-xs bg-green-50"
+                        value={distinctFieldValuesCss}
+                        onChange={(e) =>
+                          setDistinctFieldValuesCss(e.target.value)
+                        }
+                        placeholder="e.g., margin-top: 30px; margin-left: 20px; display: flex; gap: 5px;"
+                        rows={3}
+                      />
+
+                      {/* Card (child of Distinct Field Values) */}
+                      <div className="flex flex-col gap-3 pl-4 border-l-2 border-gray-400">
+                        <label className="font-bold text-base text-gray-700">
+                          Card
+                        </label>
+                        <textarea
+                          className="border rounded p-2 font-mono text-xs bg-white"
+                          value={secondLevelCardCss}
+                          onChange={(e) =>
+                            setSecondLevelCardCss(e.target.value)
+                          }
+                          placeholder="CSS for nested cards..."
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
