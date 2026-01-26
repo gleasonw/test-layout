@@ -25,18 +25,16 @@ export function LayoutDemo() {
   const [slideCss, setSlideCss] = useState(
     flexPresets.wrappedRowAlignStart.slideCss
   );
-  const [topLevelCardCss, setTopLevelCardCss] = useState(
-    flexPresets.wrappedRowAlignStart.topLevelCardCss
-  );
+  const [topLevelCardCss, setTopLevelCardCss] = useState("min-height: 50px;");
 
   const [topLevelCardCount, setTopLevelCardCount] = useState<
     number | undefined
   >(85);
   // Splitting configuration
-  const [enableSplitting, setEnableSplitting] = useState(false);
+  const [enableSplitting, setEnableSplitting] = useState(true);
 
-  const [subCardMin, setSubCardMin] = useState(0);
-  const [subCardMax, setSubCardMax] = useState(0);
+  const [subCardMin, setSubCardMin] = useState(1);
+  const [subCardMax, setSubCardMax] = useState(12);
   const [wrappingLayoutContainerCss, setWrappingLayoutContainerCss] = useState(
     flexPresets.wrappedRowAlignStart.wrappingLayoutContainerCss
   );
@@ -52,17 +50,21 @@ export function LayoutDemo() {
   const rootSlideBox: Box = {
     id: `root-slide`,
     css: slideCss,
+    label: "Root Slide",
     children: [
       {
         id: `wrap-layout`,
+        label: "Wrapping Row Shape",
         css: wrappingLayoutContainerCss,
         children: Array.from({ length: topLevelCardCount ?? 0 }, (_, i) => ({
           id: `top-level-card-${i}`,
           css: topLevelCardCss,
+          label: enableMultiLevel ? "Group Card" : undefined,
           children: enableMultiLevel
             ? [
                 {
                   id: `top-level-card-${i}-distinct-values`,
+                  label: "Distinct Field Values",
                   children: Array.from(
                     { length: randomInRange(subCardMin, subCardMax) },
                     (_, j) => ({
@@ -126,13 +128,14 @@ export function LayoutDemo() {
 
   const positionedSplitSlides = getPositionedBoxes({
     rootBox: {
-      css: "display: flex; flex-direction: row; gap: 10px; flex-wrap: wrap; max-width: 20000px",
+      css: "display: flex; flex-direction: row; gap: 10px; flex-wrap: wrap; max-width: 3000px",
       id: "split-slides-container",
       children: Array.from({ length: splitSlides?.length ?? 0 }).map(
         (_, i) => ({
           // since ppt slides are a fixed size, we can just pass the original css.
           css: slideCss,
           id: `split-slide-${i}`,
+          label: `Slide`,
         })
       ),
     },
@@ -519,7 +522,7 @@ function Box(props: { box: PositionedBox; tagNumber: number }) {
           border: box.style.display === "flex" ? `2px solid blue` : `1px solid`,
         }}
       >
-        {tagNumber}
+        {box.label ?? ""} {tagNumber}
       </div>
       {box.children?.map((childBox, i) => (
         <Box key={childBox.id} box={childBox} tagNumber={tagNumber + i} />

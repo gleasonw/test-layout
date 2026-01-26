@@ -8,6 +8,7 @@
 // Type Definitions
 export interface Box {
   id: string;
+  label?: string;
   css: string;
   children?: Box[];
 }
@@ -17,6 +18,7 @@ export interface PositionedBox {
   x: number;
   y: number;
   width: number;
+  label?: string;
   height: number;
   color?: string;
   children?: PositionedBox[];
@@ -77,6 +79,7 @@ export function getPositionedBoxes(args: { rootBox: Box }): PositionedBox {
       } else if (camel === "left") {
         style["left"] = r.left - rootRect.left;
       } else {
+        /**@ts-expect-error tricky react.cssproperties */
         style[camel] = value;
       }
     }
@@ -113,6 +116,7 @@ function getPositionsForBox(
     children: box.children?.map((b) => getPositionsForBox(b, boxToPositions)),
     id: box.id,
     style: positionedBox.style,
+    label: box.label,
   };
 }
 
@@ -141,10 +145,10 @@ function buildTree(
 export const flexPresets = {
   wrappedRowAlignStart: {
     slideCss:
-      "border: 2px solid black; display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; align-content: flex-start; width: 500px; height: 400px;",
+      "border: 2px solid black; display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; align-content: flex-start; width: 500px; height: 700px;",
     topLevelCardCss: "width: 50px; min-height: 50px;",
     wrappingLayoutContainerCss:
-      "padding: 10px; margin-left: 30px; margin-top: 20px; display: flex; padding: 20px; flex-direction: row; flex-wrap: wrap; gap: 10px; width: 450px; height: 300px",
+      "padding: 10px; margin-left: 30px; margin-top: 20px; display: flex; padding: 20px; flex-direction: row; flex-wrap: wrap; gap: 10px; width: 450px; height: 600px",
     secondLevelCardCss: "width: 50px; height: 75px;",
     distinctFieldValuesCss:
       "margin-top: 20px; margin-left: 10px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 2px; width: 100%; padding: 20px;",
