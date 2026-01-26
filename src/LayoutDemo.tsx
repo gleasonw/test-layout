@@ -21,7 +21,7 @@ const randomInRange = (min: number, max: number): number => {
 
 export function LayoutDemo() {
   // Container configuration
-  const [selectedPreset, setSelectedPreset] = useState("wrappedRow");
+  const [selectedPreset, setSelectedPreset] = useState("flexColumn");
   const [slideCss, setSlideCss] = useState(flexPresets.flexColumn.slideCss);
   const [topLevelCardCss, setTopLevelCardCss] = useState(
     flexPresets.flexColumn.topLevelCardCss
@@ -106,6 +106,7 @@ export function LayoutDemo() {
     setSelectedPreset(presetKey);
     const preset = flexPresets[presetKey as keyof typeof flexPresets];
     setSlideCss(preset.slideCss);
+    setSecondLevelCardCss(preset.secondLevelCardCss);
     setTopLevelCardCss(preset.topLevelCardCss);
     setDistinctFieldValuesCss(preset.distinctFieldValuesCss || "");
     setWrappingLayoutContainerCss(preset.wrappingLayoutContainerCss || "");
