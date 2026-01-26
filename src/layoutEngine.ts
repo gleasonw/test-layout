@@ -70,7 +70,6 @@ export function getPositionedBoxes(args: {
       height: number;
       x: number;
       y: number;
-      style: React.CSSProperties;
     }
   > = {};
 
@@ -78,29 +77,11 @@ export function getPositionedBoxes(args: {
 
   Object.entries(boxToElement).forEach(([id, element]) => {
     const r = element.getBoundingClientRect();
-    const style: React.CSSProperties = {};
-    for (const prop of element.style) {
-      const value = element.style.getPropertyValue(prop);
-      if (!value) continue;
-
-      const camel = prop.replace(/-([a-z])/g, (_, c) =>
-        c.toUpperCase()
-      ) as keyof React.CSSProperties;
-      if (camel === "top") {
-        style["top"] = r.top - rootRect.top;
-      } else if (camel === "left") {
-        style["left"] = r.left - rootRect.left;
-      } else {
-        /**@ts-expect-error tricky react.cssproperties */
-        style[camel] = value;
-      }
-    }
     boxIdToPositionAndDimension[id] = {
       width: r.width,
       height: r.height,
       x: r.left - rootRect.left,
       y: r.top - rootRect.top,
-      style,
     };
   });
 
@@ -118,7 +99,6 @@ function getPositionsForBox(
       width: number;
       x: number;
       y: number;
-      style: React.CSSProperties;
     }
   >
 ): PositionedCanvasBox {
@@ -151,14 +131,25 @@ function buildTree(
 }
 
 export const flexPresets = {
-  wrappedRowAlignStart: {
+  flexRow: {
     slideCss:
-      "border: 2px solid black; display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; align-content: flex-start; width: 500px; height: 700px;",
-    topLevelCardCss: "width: 50px; min-height: 50px;",
+      "border: 2px solid black; display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; align-content: flex-start; width: 1920px; height: 1080px;",
+    topLevelCardCss: "",
     wrappingLayoutContainerCss:
-      "padding: 10px; margin-left: 30px; margin-top: 20px; display: flex; padding: 20px; flex-direction: row; flex-wrap: wrap; gap: 10px; width: 450px; height: 600px",
+      "padding: 10px; margin-left: 30px; margin-top: 20px; display: flex; padding: 20px; flex-direction: row; flex-wrap: wrap; gap: 10px; width: 1800px; height: 900px",
     secondLevelCardCss: "width: 50px; height: 75px;",
     distinctFieldValuesCss:
       "margin-top: 30px; margin-left: 50px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 2px; padding-top: 30px; padding-left: 10px; padding-right: 10px; padding-bottom: 10px;",
+  },
+  flexColumn: {
+    slideCss:
+      "border: 2px solid black; display: flex; flex-direction: column; width: 800px; height: 700px; overflow: hidden;",
+    topLevelCardCss: "",
+    wrappingLayoutContainerCss:
+      "display: flex; flex-direction: column; padding: 20px; gap: 15px; width: 700px; height: 650px; margin-left: 30px;",
+    secondLevelCardCss:
+      "width: 50px; height: 75px; margin-left: -20px; margin-top: -8px;",
+    distinctFieldValuesCss:
+      "margin-top: 20px; margin-left: 150px; margin-right: 30px; display: flex; flex-direction: row; flex-wrap: wrap; padding: 15px; padding-top: 40px;",
   },
 };

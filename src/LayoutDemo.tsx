@@ -22,9 +22,7 @@ const randomInRange = (min: number, max: number): number => {
 export function LayoutDemo() {
   // Container configuration
   const [selectedPreset, setSelectedPreset] = useState("wrappedRow");
-  const [slideCss, setSlideCss] = useState(
-    flexPresets.wrappedRowAlignStart.slideCss
-  );
+  const [slideCss, setSlideCss] = useState(flexPresets.flexRow.slideCss);
   const [topLevelCardCss, setTopLevelCardCss] = useState(
     "min-height: 50px; padding: 10px"
   );
@@ -38,13 +36,13 @@ export function LayoutDemo() {
   const [subCardMin, setSubCardMin] = useState(1);
   const [subCardMax, setSubCardMax] = useState(12);
   const [wrappingLayoutContainerCss, setWrappingLayoutContainerCss] = useState(
-    flexPresets.wrappedRowAlignStart.wrappingLayoutContainerCss
+    flexPresets.flexRow.wrappingLayoutContainerCss
   );
   const [secondLevelCardCss, setSecondLevelCardCss] = useState(
-    flexPresets.wrappedRowAlignStart.secondLevelCardCss
+    flexPresets.flexRow.secondLevelCardCss
   );
   const [distinctFieldValuesCss, setDistinctFieldValuesCss] = useState(
-    flexPresets.wrappedRowAlignStart.distinctFieldValuesCss
+    flexPresets.flexRow.distinctFieldValuesCss
   );
   const [splitSlideContainerCss, setSplitSlideContainerCss] = useState(
     "display: flex; gap: 100px; flex-wrap: wrap; max-width: 3000px"
@@ -207,71 +205,68 @@ export function LayoutDemo() {
         </p>
       </div>
 
-      {/* Top-Level Controls Section */}
-      <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6 shadow-md flex w-full">
-        <div className="flex flex-wrap gap-6 items-center">
-          {/* Preset Selector */}
-          <div className="flex items-center gap-3 flex-1 min-w-[250px]">
-            <label className="text-lg font-bold text-gray-800 whitespace-nowrap">
-              Preset:
-            </label>
-            <select
-              className="flex-1 border-2 border-blue-300 rounded-md text-base p-2 bg-white cursor-pointer hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
-              value={selectedPreset}
-              onChange={(e) =>
-                handlePresetChange(e.target.value as keyof typeof flexPresets)
-              }
-            >
-              {presetOptions.map(({ label, value }) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <label className="flex items-center gap-2 cursor-pointer whitespace-nowrap">
-            <input
-              type="checkbox"
-              checked={enableSplitting}
-              onChange={(e) => setEnableSplitting(e.target.checked)}
-              className="cursor-pointer w-4 h-4"
-            />
-            <span className="font-semibold">Enable Slide Splitting</span>
+      <div className="flex flex-col gap-3">
+        {/* Preset Selector */}
+        <div className="flex items-center gap-3 flex-1 min-w-[250px]">
+          <label className="text-lg font-bold text-gray-800 whitespace-nowrap">
+            Layout Shape Preset:
           </label>
-          {enableSplitting && (
-            <div className="flex items-center gap-2 min-w-[500px]">
-              <label className="text-sm font-semibold whitespace-nowrap">
-                Split Container CSS:
-              </label>
-              <input
-                type="text"
-                value={splitSlideContainerCss}
-                onChange={(e) => setSplitSlideContainerCss(e.target.value)}
-                className="flex-1 border border-gray-300 rounded p-1.5 font-mono text-xs"
-                placeholder="display: flex; gap: 10px;"
-              />
-            </div>
-          )}
-          <label className="flex items-center gap-2 cursor-pointer whitespace-nowrap">
-            <input
-              type="checkbox"
-              checked={enableMultiLevel}
-              onChange={(e) => {
-                if (enableMultiLevel) {
-                  setSubCardMax(0);
-                  setSubCardMin(0);
-                  setTopLevelCardCss(`width: 50px; height: 100px`);
-                } else {
-                  setSubCardMin(2);
-                  setSubCardMax(15);
-                  setTopLevelCardCss(`min-height: 50px;`);
-                }
-              }}
-              className="cursor-pointer w-4 h-4"
-            />
-            <span className="font-semibold">Enable Multi-Level</span>
-          </label>
+          <select
+            className="max-w-[200px] flex-1 border-2 border-blue-300 rounded-md text-base p-2 bg-white cursor-pointer hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+            value={selectedPreset}
+            onChange={(e) =>
+              handlePresetChange(e.target.value as keyof typeof flexPresets)
+            }
+          >
+            {presetOptions.map(({ label, value }) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
         </div>
+        <label className="flex items-center gap-2 cursor-pointer whitespace-nowrap">
+          <input
+            type="checkbox"
+            checked={enableSplitting}
+            onChange={(e) => setEnableSplitting(e.target.checked)}
+            className="cursor-pointer w-4 h-4"
+          />
+          <span className="font-semibold">Enable Slide Splitting</span>
+        </label>
+        {enableSplitting && (
+          <div className="flex items-center gap-2 min-w-[500px]">
+            <label className="text-sm font-semibold whitespace-nowrap">
+              Split Container CSS:
+            </label>
+            <input
+              type="text"
+              value={splitSlideContainerCss}
+              onChange={(e) => setSplitSlideContainerCss(e.target.value)}
+              className="flex-1 border border-gray-300 rounded p-1.5 font-mono text-xs"
+              placeholder="display: flex; gap: 10px;"
+            />
+          </div>
+        )}
+        <label className="flex items-center gap-2 cursor-pointer whitespace-nowrap">
+          <input
+            type="checkbox"
+            checked={enableMultiLevel}
+            onChange={(e) => {
+              if (enableMultiLevel) {
+                setSubCardMax(0);
+                setSubCardMin(0);
+                setTopLevelCardCss(`width: 50px; height: 100px`);
+              } else {
+                setSubCardMin(2);
+                setSubCardMax(15);
+                setTopLevelCardCss(`min-height: 50px;`);
+              }
+            }}
+            className="cursor-pointer w-4 h-4"
+          />
+          <span className="font-semibold">Enable Multi-Level</span>
+        </label>
       </div>
 
       <div className="flex gap-5 flex-wrap lg:flex-nowrap w-full">
@@ -520,7 +515,7 @@ export function LayoutDemo() {
                   borderRadius: "4px",
                   fontSize: "11px",
                   overflow: "auto",
-                  maxHeight: "200px",
+                  maxHeight: "800px",
                   color: "#000",
                 }}
               >
