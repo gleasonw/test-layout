@@ -46,32 +46,36 @@ export function LayoutDemo() {
   const [distinctFieldValuesCss, setDistinctFieldValuesCss] = useState(
     flexPresets.wrappedRowAlignStart.distinctFieldValuesCss
   );
+  const [splitSlideContainerCss, setSplitSlideContainerCss] = useState(
+    "display: flex; gap: 10px; flex-wrap: wrap; max-width: 3000px"
+  );
 
   const enableMultiLevel = subCardMax > 0;
 
   const rootSlideBox: Box = {
     id: `root-slide`,
     css: slideCss,
-    label: "Root Slide",
+    type: "Slide",
     children: [
       {
         id: `wrap-layout`,
-        label: "Wrapping Row Shape",
+        type: "Wrapping Row",
         css: wrappingLayoutContainerCss,
         children: Array.from({ length: topLevelCardCount ?? 0 }, (_, i) => ({
           id: `top-level-card-${i}`,
           css: topLevelCardCss,
-          label: enableMultiLevel ? "Group Card" : undefined,
+          type: enableMultiLevel ? "Group Card" : "Card",
           children: enableMultiLevel
             ? [
                 {
                   id: `top-level-card-${i}-distinct-values`,
-                  label: "Distinct Field Values",
+                  type: "Distinct Field Values",
                   children: Array.from(
                     { length: randomInRange(subCardMin, subCardMax) },
                     (_, j) => ({
                       id: `top-level-card-${i}-distinct-values-child-${j}`,
                       css: secondLevelCardCss,
+                      type: "Card",
                     })
                   ),
                   css: distinctFieldValuesCss,
@@ -130,14 +134,15 @@ export function LayoutDemo() {
 
   const positionedSplitSlides = getPositionedBoxes({
     rootBox: {
-      css: "display: flex; flex-direction: row; gap: 10px; flex-wrap: wrap; max-width: 3000px",
+      css: splitSlideContainerCss,
       id: "split-slides-container",
+      type: "Slides Container",
       children: Array.from({ length: splitSlides?.length ?? 0 }).map(
         (_, i) => ({
           // since ppt slides are a fixed size, we can just pass the original css.
           css: slideCss,
           id: `split-slide-${i}`,
-          label: `Slide`,
+          type: `Slide`,
         })
       ),
     },
@@ -227,6 +232,20 @@ export function LayoutDemo() {
             />
             <span className="font-semibold">Enable Slide Splitting</span>
           </label>
+          {enableSplitting && (
+            <div className="flex items-center gap-2 min-w-[500px]">
+              <label className="text-sm font-semibold whitespace-nowrap">
+                Split Container CSS:
+              </label>
+              <input
+                type="text"
+                value={splitSlideContainerCss}
+                onChange={(e) => setSplitSlideContainerCss(e.target.value)}
+                className="flex-1 border border-gray-300 rounded p-1.5 font-mono text-xs"
+                placeholder="display: flex; gap: 10px;"
+              />
+            </div>
+          )}
           <label className="flex items-center gap-2 cursor-pointer whitespace-nowrap">
             <input
               type="checkbox"
@@ -495,6 +514,15 @@ export function LayoutDemo() {
                     />
                   )),
                   <Box box={slide} tagNumber={i} />,
+                  wrapLayoutShape ? (
+                    <Box
+                      box={getTranslatedBox(
+                        { ...wrapLayoutShape, children: undefined },
+                        [slide.x, slide.y]
+                      )}
+                      tagNumber={i}
+                    />
+                  ) : undefined,
                 ];
               })}
             </>
@@ -521,10 +549,10 @@ function Box(props: { box: PositionedBox; tagNumber: number }) {
           height: `${box.height}px`,
           boxSizing: "border-box",
           pointerEvents: "none",
-          border: box.style.display === "flex" ? `2px solid blue` : `1px solid`,
         }}
+        className="border shadow-md"
       >
-        {box.label ?? ""} {tagNumber}
+        {box.type ?? ""} {tagNumber}
       </div>
       {box.children?.map((childBox, i) => (
         <Box key={childBox.id} box={childBox} tagNumber={tagNumber + i} />

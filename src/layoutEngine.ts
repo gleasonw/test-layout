@@ -5,10 +5,19 @@
  * by creating a detached DOM tree, applying CSS, and reading computed positions.
  */
 
+// in domain world
+type BoxType =
+  | "Slide"
+  | "Wrapping Row"
+  | "Distinct Field Values"
+  | "Card"
+  | "Group Card"
+  | "Slides Container";
+
 // Type Definitions
 export interface Box {
   id: string;
-  label?: string;
+  type: BoxType;
   css: string;
   children?: Box[];
 }
@@ -18,12 +27,10 @@ export interface PositionedBox {
   x: number;
   y: number;
   width: number;
-  label?: string;
+  type: BoxType;
   height: number;
   color?: string;
   children?: PositionedBox[];
-  // I don't know how well this works?
-  style: React.CSSProperties;
 }
 
 //unresolved questions: do we need to worry about overrides from document css?
@@ -115,8 +122,7 @@ function getPositionsForBox(
     ...positionedBox,
     children: box.children?.map((b) => getPositionsForBox(b, boxToPositions)),
     id: box.id,
-    style: positionedBox.style,
-    label: box.label,
+    type: box.type,
   };
 }
 
