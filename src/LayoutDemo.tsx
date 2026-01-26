@@ -47,7 +47,7 @@ export function LayoutDemo() {
     flexPresets.wrappedRowAlignStart.distinctFieldValuesCss
   );
   const [splitSlideContainerCss, setSplitSlideContainerCss] = useState(
-    "display: flex; gap: 10px; flex-wrap: wrap; max-width: 3000px"
+    "display: flex; gap: 100px; flex-wrap: wrap; max-width: 3000px"
   );
 
   const enableMultiLevel = subCardMax > 0;
@@ -142,7 +142,7 @@ export function LayoutDemo() {
           // since ppt slides are a fixed size, we can just pass the original css.
           css: slideCss,
           id: `split-slide-${i}`,
-          type: `Slide`,
+          type: "Slide",
         })
       ),
     },
@@ -535,8 +535,57 @@ export function LayoutDemo() {
   );
 }
 
+function getBoxStyles(type: string) {
+  switch (type) {
+    case "Slide":
+      return {
+        className: "border-[3px] border-purple-600 shadow-lg bg-purple-50",
+        borderStyle: "solid" as const,
+        zIndex: 1,
+      };
+    case "Wrapping Row":
+      return {
+        className: "border-2 border-orange-500 shadow-md bg-orange-50",
+        borderStyle: "dashed" as const,
+        zIndex: 2,
+      };
+    case "Group Card":
+      return {
+        className: "border-2 border-blue-500 shadow-md bg-blue-50",
+        borderStyle: "solid" as const,
+        zIndex: 3,
+      };
+    case "Distinct Field Values":
+      return {
+        className: "border border-green-500 shadow-sm bg-green-50",
+        borderStyle: "dashed" as const,
+        zIndex: 4,
+      };
+    case "Card":
+      return {
+        className: "border border-gray-400 shadow-sm bg-white",
+        borderStyle: "solid" as const,
+        zIndex: 5,
+      };
+    case "Slides Container":
+      return {
+        className: "border-2 border-red-500 shadow-md bg-red-50",
+        borderStyle: "dotted" as const,
+        zIndex: 0,
+      };
+    default:
+      return {
+        className: "border border-gray-300 shadow-sm bg-white",
+        borderStyle: "solid" as const,
+        zIndex: 10,
+      };
+  }
+}
+
 function Box(props: { box: PositionedBox; tagNumber: number }) {
   const { box, tagNumber } = props;
+  const styles = getBoxStyles(box.type ?? "");
+
   return (
     <>
       <div
@@ -549,8 +598,10 @@ function Box(props: { box: PositionedBox; tagNumber: number }) {
           height: `${box.height}px`,
           boxSizing: "border-box",
           pointerEvents: "none",
+          borderStyle: styles.borderStyle,
+          zIndex: styles.zIndex,
         }}
-        className="border shadow-md"
+        className={styles.className}
       >
         {box.type ?? ""} {tagNumber}
       </div>
