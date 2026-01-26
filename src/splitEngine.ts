@@ -63,9 +63,7 @@ export function splitChildrenOfRootBox(args: {
   function flush() {
     if (activeRows.length === 0) return;
 
-    // Normalize shapes while preserving parent container offset
-    // Parent cards should maintain their position relative to the parent container
-    // which itself maintains its offset from the slide origin
+    // all split slides should have same top offset
     const boxesAdjustedRelativeToNewSlide = activeRows.flatMap((r) =>
       r.boxes.map((b) => getTranslatedBox(b, [0, -upperRowEdge]))
     );
