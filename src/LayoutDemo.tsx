@@ -34,7 +34,7 @@ export function LayoutDemo() {
   const [enableSplitting, setEnableSplitting] = useState(true);
 
   const [subCardMin, setSubCardMin] = useState(1);
-  const [subCardMax, setSubCardMax] = useState(12);
+  const [subCardMax, setSubCardMax] = useState(21);
   const [wrappingLayoutContainerCss, setWrappingLayoutContainerCss] = useState(
     flexPresets.flexColumn.wrappingLayoutContainerCss
   );
