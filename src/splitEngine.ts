@@ -1,53 +1,62 @@
-import type { ContainerBox, PositionedShape } from "@/layoutEngine";
+import type { PositionedBox, Box } from "@/layoutEngine";
 
-export type NormalizedSlide = {
-  shapes: Array<PositionedShape>;
-  parentContainerOffset: { x: number; y: number };
-};
+type PositionedBoxRelativeToSlide = PositionedBox & { brand: "__relative" };
+export function getTranslatedBox(
+  b: PositionedBox,
+  translateVec: [number, number]
+): PositionedBox {
+  return {
+    ...b,
+    x: b.x + translateVec[0],
+    y: b.y + translateVec[1],
+    children: b.children?.map((c) => getTranslatedBox(c, translateVec)),
+  } as PositionedBoxRelativeToSlide;
+}
 
-export function splitShapesIntoBoxes(args: {
-  shapes: Array<PositionedShape>;
-  slideBox: ContainerBox;
-  parentContainerOffset?: { x: number; y: number };
+export function splitChildrenOfRootBox(args: {
+  rootBox: PositionedBox;
+  /**y-value tolerance for putting boxes into the same row  */
   rowEpsilonPx?: number;
-}) {
-  const { shapes, slideBox, parentContainerOffset = { x: 0, y: 0 }, rowEpsilonPx = 1 } = args;
-  if (shapes.length === 0) return [];
+}): Array<Array<PositionedBox>> | null {
+  const { rootBox: positionedBox, rowEpsilonPx = 1 } = args;
 
+  const boxesToSplit = positionedBox.children;
+  if (!boxesToSplit || boxesToSplit?.length === 0) {
+    return null;
+  }
+
+  //TODO: I don't think we need to worry about sort order, since we're maintaining insertion order
+  // but maybe something to think about long-term
   // Available height for layout (accounting for parent container offset from top)
-  const maxLayoutHeight = slideBox.height - parentContainerOffset.y;
-
-  // stable ordering
-  const sorted = [...shapes].sort((a, b) => {
-    if (a.y !== b.y) return a.y - b.y;
-    return a.x - b.x;
-  });
+  const maxHeight = positionedBox.height;
 
   type Row = {
     top: number;
     bottom: number;
-    shapes: Array<PositionedShape>;
+    boxes: Array<PositionedBox>;
   };
 
   const rows: Array<Row> = [];
 
-  for (const shape of sorted) {
-    const top = shape.y;
-    const bottom = shape.y + shape.height;
+  for (const box of boxesToSplit) {
+    const top = box.y;
+    const bottom = box.y + box.height;
     const last = rows.at(-1);
 
     if (last && Math.abs(top - last.top) <= rowEpsilonPx) {
-      last.shapes.push(shape);
+      last.boxes.push(box);
       last.bottom = Math.max(last.bottom, bottom);
     } else {
-      rows.push({ top, bottom, shapes: [shape] });
+      rows.push({ top, bottom, boxes: [box] });
     }
   }
 
-  const slides: Array<NormalizedSlide> = [];
+  const slides: Array<Array<PositionedBox>> = [];
 
   let activeRows: Array<Row> = [];
-  let slideTop = rows[0]?.top ?? 0;
+  let upperRowEdge = 0;
+  let currentSlideIndex = 0;
+  const topRowOffset = rows[0]?.top;
 
   function flush() {
     if (activeRows.length === 0) return;
@@ -55,30 +64,21 @@ export function splitShapesIntoBoxes(args: {
     // Normalize shapes while preserving parent container offset
     // Parent cards should maintain their position relative to the parent container
     // which itself maintains its offset from the slide origin
-    const normalizedShapes = activeRows.flatMap((r) =>
-      r.shapes.map((s) => ({
-        ...s,
-        // Preserve X position (already includes parent container offset)
-        x: s.x,
-        // Translate Y to slide origin, then add back parent container offset
-        // This keeps parent cards at the same offset in each slide
-        y: s.y - slideTop + parentContainerOffset.y,
-      }))
+    const boxesAdjustedRelativeToNewSlide = activeRows.flatMap((r) =>
+      r.boxes.map((b) => getTranslatedBox(b, [0, -upperRowEdge]))
     );
 
-    slides.push({ 
-      shapes: normalizedShapes,
-      parentContainerOffset: parentContainerOffset,
-    });
+    slides.push(boxesAdjustedRelativeToNewSlide);
+    currentSlideIndex += 1;
     activeRows = [];
   }
 
   for (const row of rows) {
-    const neededHeight = row.bottom - slideTop;
+    const neededHeight = row.bottom - upperRowEdge;
 
-    if (activeRows.length > 0 && neededHeight > maxLayoutHeight) {
+    if (activeRows.length > 0 && neededHeight > maxHeight) {
       flush();
-      slideTop = row.top;
+      upperRowEdge = row.top - topRowOffset;
     }
 
     activeRows.push(row);

@@ -26,7 +26,7 @@ export interface PositionedBox {
 
 //unresolved questions: do we need to worry about overrides from document css?
 
-export function getPositionedShapes(args: { rootBox: Box }): PositionedBox {
+export function getPositionedBoxes(args: { rootBox: Box }): PositionedBox {
   const { rootBox } = args;
   // Create detached container
   const container = document.createElement("div");
@@ -147,6 +147,6 @@ export const flexPresets = {
       "padding: 10px; margin-left: 30px; margin-top: 20px; display: flex; padding: 20px; flex-direction: row; flex-wrap: wrap; gap: 10px; width: 450px; height: 300px",
     secondLevelCardCss: "width: 50px; height: 75px;",
     distinctFieldValuesCss:
-      "display: flex; flex-direction: row; flex-wrap: wrap; gap: 2px; width: 100%; height: 100%; padding: 20px;",
+      "margin-top: 20px; margin-left: 10px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 2px; width: 100%; padding: 20px;",
   },
 };

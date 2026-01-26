@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import {
-  getPositionedShapes as getPositionedBox,
+  getPositionedBoxes,
   flexPresets,
   Box,
   PositionedBox,
 } from "./layoutEngine";
 import React from "react";
-import { splitShapesIntoBoxes, type NormalizedSlide } from "@/splitEngine";
+import { getTranslatedBox, splitChildrenOfRootBox } from "@/splitEngine";
 
 // Generate random color for each shape
 const generateColor = (id: string): string => {
@@ -18,42 +18,6 @@ const generateColor = (id: string): string => {
 const randomInRange = (min: number, max: number): number => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 };
-
-// Type for slides with layout positioning
-type SlideWithLayout = {
-  slideIndex: number;
-  slideX: number; // x position of slide on whiteboard
-  slideY: number; // y position of slide on whiteboard
-  slideWidth: number; // box width
-  slideHeight: number; // box height
-  children: PositionedBox[]; // shapes with positions relative to slide
-};
-
-// Transform NormalizedSlides into vertically stacked slides with layout info
-function layoutSlidesVertically(
-  slides: NormalizedSlide[],
-  boxWidth: number,
-  boxHeight: number,
-  gap: number = 50
-): SlideWithLayout[] {
-  const slidesWithLayout: SlideWithLayout[] = [];
-  let currentY = 0;
-
-  slides.forEach((slide, index) => {
-    slidesWithLayout.push({
-      slideIndex: index,
-      slideX: 0,
-      slideY: currentY,
-      slideWidth: boxWidth,
-      slideHeight: boxHeight,
-      children: slide.shapes, // Already normalized relative to slide (0, 0)
-    });
-
-    currentY += boxHeight + gap;
-  });
-
-  return slidesWithLayout;
-}
 
 export function LayoutDemo() {
   // Container configuration
@@ -117,7 +81,7 @@ export function LayoutDemo() {
 
   const startTime = performance.now();
 
-  const positionedBox = getPositionedBox({ rootBox: rootSlideBox });
+  const positionedBox = getPositionedBoxes({ rootBox: rootSlideBox });
 
   const endTime = performance.now();
   const calculationTime = endTime - startTime;
@@ -151,6 +115,28 @@ export function LayoutDemo() {
   }
 
   let totalBoxes = addUpChildren(0, rootSlideBox);
+
+  const wrapLayoutShape = positionedBox.children?.at(0);
+
+  const splitSlides = wrapLayoutShape
+    ? splitChildrenOfRootBox({
+        rootBox: wrapLayoutShape,
+      })
+    : [];
+
+  const positionedSplitSlides = getPositionedBoxes({
+    rootBox: {
+      css: "display: flex; flex-direction: row; gap: 10px; flex-wrap: wrap; max-width: 20000px",
+      id: "split-slides-container",
+      children: Array.from({ length: splitSlides?.length ?? 0 }).map(
+        (_, i) => ({
+          // since ppt slides are a fixed size, we can just pass the original css.
+          css: slideCss,
+          id: `split-slide-${i}`,
+        })
+      ),
+    },
+  });
 
   return (
     <div className="p-10 font-sans text-black flex flex-col gap-10 max-w-7xl mx-auto w-full">
@@ -489,7 +475,27 @@ export function LayoutDemo() {
             </div>
           }
         >
-          <Box box={positionedBox} tagNumber={1} />
+          {enableSplitting ? (
+            <>
+              {positionedSplitSlides.children?.map((slide, i) => {
+                // HUMONGOUS assumption here that order will remain stable...
+                // shouldn't rely on this but just vibing
+                const boxesForSplitSlide = splitSlides?.[i] ?? [];
+                return [
+                  ...boxesForSplitSlide.map((b) => (
+                    <Box
+                      box={getTranslatedBox(b, [slide.x, slide.y])}
+                      key={b.id}
+                      tagNumber={i}
+                    />
+                  )),
+                  <Box box={slide} tagNumber={i} />,
+                ];
+              })}
+            </>
+          ) : (
+            <Box box={positionedBox} tagNumber={1} />
+          )}
         </Whiteboard>
       </div>
     </div>
