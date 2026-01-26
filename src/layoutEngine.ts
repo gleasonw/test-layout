@@ -20,6 +20,8 @@ export interface PositionedBox {
   height: number;
   color?: string;
   children?: PositionedBox[];
+  // I don't know how well this works?
+  style: React.CSSProperties;
 }
 
 //unresolved questions: do we need to worry about overrides from document css?
@@ -49,18 +51,41 @@ export function getPositionedShapes(args: { rootBox: Box }): PositionedBox {
   //get all positions
   const boxIdToPositionAndDimension: Record<
     string,
-    { width: number; height: number; x: number; y: number }
+    {
+      width: number;
+      height: number;
+      x: number;
+      y: number;
+      style: React.CSSProperties;
+    }
   > = {};
 
   const rootRect = container.getBoundingClientRect();
 
   Object.entries(boxToElement).forEach(([id, element]) => {
     const r = element.getBoundingClientRect();
+    const style: React.CSSProperties = {};
+    for (const prop of element.style) {
+      const value = element.style.getPropertyValue(prop);
+      if (!value) continue;
+
+      const camel = prop.replace(/-([a-z])/g, (_, c) =>
+        c.toUpperCase()
+      ) as keyof React.CSSProperties;
+      if (camel === "top") {
+        style["top"] = r.top - rootRect.top;
+      } else if (camel === "left") {
+        style["left"] = r.left - rootRect.left;
+      } else {
+        style[camel] = value;
+      }
+    }
     boxIdToPositionAndDimension[id] = {
       width: r.width,
       height: r.height,
       x: r.left - rootRect.left,
       y: r.top - rootRect.top,
+      style,
     };
   });
 
@@ -73,7 +98,13 @@ function getPositionsForBox(
   box: Box,
   boxToPositions: Record<
     string,
-    { height: number; width: number; x: number; y: number }
+    {
+      height: number;
+      width: number;
+      x: number;
+      y: number;
+      style: React.CSSProperties;
+    }
   >
 ): PositionedBox {
   const positionedBox = boxToPositions[box.id];
@@ -81,6 +112,7 @@ function getPositionsForBox(
     ...positionedBox,
     children: box.children?.map((b) => getPositionsForBox(b, boxToPositions)),
     id: box.id,
+    style: positionedBox.style,
   };
 }
 
@@ -108,79 +140,13 @@ function buildTree(
  */
 export const flexPresets = {
   wrappedRowAlignStart: {
-    container:
-      "display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; align-content: flex-start;",
-    child: "",
-    childContainer: "",
-    parentContainer: "",
-  },
-  autoExpandingCards: {
-    container:
-      "display: flex; flex-direction: row; flex-wrap: wrap; gap:10px; align-content: flex-start",
-    child: "flex-grow: 1; min-width: 50px; height: 50px;",
-    childContainer: "",
-    parentContainer: "",
-  },
-  wrappedRowCentered: {
-    container:
-      "display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center;",
-    child: "",
-    childContainer: "",
-    parentContainer: "",
-  },
-  overlappingCards: {
-    container:
-      "display: flex; flex-direction: row; flex-wrap: wrap; padding-left: 20px; align-items: flex-start;",
-    child: "margin-left: -10px;",
-    childContainer: "",
-    parentContainer: "",
-  },
-  // Multi-level layout presets showcasing nested card functionality
-  rowResponsiveParents: {
-    container:
-      "display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; align-items: flex-start;",
-    child: "padding: 5px;",
-    childContainer: "",
-    parentContainer: "",
-  },
-  columnResponsiveParents: {
-    container:
-      "display: flex; flex-direction: column; gap: 15px; align-items: flex-start;",
-    child: "padding: 5px;",
-    childContainer: "",
-    parentContainer: "",
-  },
-  rowOverlappingChildren: {
-    container:
-      "display: flex; flex-direction: row; gap: 12px; flex-wrap: wrap; align-items: flex-start;",
-    child: "margin-left: -20px;",
-    childContainer: "",
-    parentContainer: "",
-  },
-  // NEW: Child container positioning presets
-  childrenBottomOffset: {
-    container:
-      "display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; align-items: flex-start;",
-    child: "display: flex; flex-direction: column; padding: 10px;",
-    childContainer:
-      "margin-top: 40px; display: flex; gap: 5px; flex-wrap: wrap;",
-    parentContainer: "",
-  },
-  childrenRightOffset: {
-    container:
-      "display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; align-items: flex-start;",
-    child: "display: flex; flex-direction: column; padding: 10px;",
-    childContainer:
-      "margin-left: 30px; display: flex; gap: 5px; flex-wrap: wrap;",
-    parentContainer: "",
-  },
-  childrenAtPosition: {
-    container:
-      "display: flex; flex-direction: row; gap: 15px; flex-wrap: wrap; align-items: flex-start;",
-    child:
-      "display: flex; flex-direction: column; padding: 10px; min-height: 120px;",
-    childContainer:
-      "margin-top: 50px; margin-left: 50px; display: flex; gap: 5px; flex-wrap: wrap;",
-    parentContainer: "",
+    slideCss:
+      "border: 2px solid black; display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; align-content: flex-start; width: 500px; height: 400px;",
+    topLevelCardCss: "width: 50px; min-height: 50px;",
+    wrappingLayoutContainerCss:
+      "padding: 10px; margin-left: 30px; margin-top: 20px; display: flex; padding: 20px; flex-direction: row; flex-wrap: wrap; gap: 10px; width: 450px; height: 300px",
+    secondLevelCardCss: "width: 50px; height: 75px;",
+    distinctFieldValuesCss:
+      "display: flex; flex-direction: row; flex-wrap: wrap; gap: 2px; width: 100%; height: 100%; padding: 20px;",
   },
 };
