@@ -410,7 +410,7 @@ export function LayoutDemo() {
             </div>
 
             <div className="flex flex-col gap-3 pl-4 border-l-4 border-orange-300">
-              <label className="font-bold text-base">WrapLayoutContainer</label>
+              <label className="font-bold text-base">Wrapping Row</label>
               <textarea
                 className="border rounded p-2 font-mono text-xs"
                 value={wrappingLayoutContainerCss}
