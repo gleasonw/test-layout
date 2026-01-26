@@ -138,10 +138,6 @@ function buildTree(
   });
 }
 
-/**
- * Helper function to create common flexbox CSS strings
- * Returns an object with container CSS and optional child CSS
- */
 export const flexPresets = {
   wrappedRowAlignStart: {
     slideCss:
@@ -151,6 +147,6 @@ export const flexPresets = {
       "padding: 10px; margin-left: 30px; margin-top: 20px; display: flex; padding: 20px; flex-direction: row; flex-wrap: wrap; gap: 10px; width: 450px; height: 600px",
     secondLevelCardCss: "width: 50px; height: 75px;",
     distinctFieldValuesCss:
-      "margin-top: 20px; margin-left: 10px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 2px; width: 100%; padding: 20px;",
+      "margin-top: 30px; margin-left: 50px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 2px; padding-top: 30px; padding-left: 10px; padding-right: 10px; padding-bottom: 10px;",
   },
 };

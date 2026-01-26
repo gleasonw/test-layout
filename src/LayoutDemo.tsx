@@ -25,7 +25,9 @@ export function LayoutDemo() {
   const [slideCss, setSlideCss] = useState(
     flexPresets.wrappedRowAlignStart.slideCss
   );
-  const [topLevelCardCss, setTopLevelCardCss] = useState("min-height: 50px;");
+  const [topLevelCardCss, setTopLevelCardCss] = useState(
+    "min-height: 50px; padding: 10px"
+  );
 
   const [topLevelCardCount, setTopLevelCardCount] = useState<
     number | undefined
@@ -617,7 +619,7 @@ function Whiteboard({
     const viewport = viewportRef.current;
     if (!viewport) return;
 
-    const targetZoom = 0.75;
+    const targetZoom = 0.25;
 
     setZoom(targetZoom);
     setCameraX(0);
