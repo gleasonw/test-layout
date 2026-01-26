@@ -150,6 +150,6 @@ export const flexPresets = {
     secondLevelCardCss:
       "width: 50px; height: 75px; margin-left: -20px; margin-top: -8px;",
     distinctFieldValuesCss:
-      "margin-top: 20px; margin-left: 150px; margin-right: 30px; display: flex; flex-direction: row; flex-wrap: wrap; padding: 15px; padding-top: 40px;",
+      "margin-top: 20px; margin-left: 150px; margin-right: 30px; display: flex; flex-direction: row; flex-wrap: wrap; padding: 25px; padding-top: 40px;",
   },
 };

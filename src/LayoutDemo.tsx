@@ -22,9 +22,9 @@ const randomInRange = (min: number, max: number): number => {
 export function LayoutDemo() {
   // Container configuration
   const [selectedPreset, setSelectedPreset] = useState("wrappedRow");
-  const [slideCss, setSlideCss] = useState(flexPresets.flexRow.slideCss);
+  const [slideCss, setSlideCss] = useState(flexPresets.flexColumn.slideCss);
   const [topLevelCardCss, setTopLevelCardCss] = useState(
-    "min-height: 50px; padding: 10px"
+    flexPresets.flexColumn.topLevelCardCss
   );
 
   const [topLevelCardCount, setTopLevelCardCount] = useState<
@@ -36,13 +36,13 @@ export function LayoutDemo() {
   const [subCardMin, setSubCardMin] = useState(1);
   const [subCardMax, setSubCardMax] = useState(12);
   const [wrappingLayoutContainerCss, setWrappingLayoutContainerCss] = useState(
-    flexPresets.flexRow.wrappingLayoutContainerCss
+    flexPresets.flexColumn.wrappingLayoutContainerCss
   );
   const [secondLevelCardCss, setSecondLevelCardCss] = useState(
-    flexPresets.flexRow.secondLevelCardCss
+    flexPresets.flexColumn.secondLevelCardCss
   );
   const [distinctFieldValuesCss, setDistinctFieldValuesCss] = useState(
-    flexPresets.flexRow.distinctFieldValuesCss
+    flexPresets.flexColumn.distinctFieldValuesCss
   );
   const [splitSlideContainerCss, setSplitSlideContainerCss] = useState(
     "display: flex; gap: 100px; flex-wrap: wrap; max-width: 3000px"
