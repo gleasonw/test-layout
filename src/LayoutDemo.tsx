@@ -275,7 +275,7 @@ export function LayoutDemo() {
       </div>
 
       <div className="flex gap-5 flex-wrap lg:flex-nowrap w-full">
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5 w-full max-w-[400px]">
           <div className="border shadow-lg p-3">
             {/* Shapes Panel */}
             <div style={{ flex: "1", minWidth: "300px" }}>
@@ -406,7 +406,7 @@ export function LayoutDemo() {
                 value={slideCss}
                 onChange={(e) => setSlideCss(e.target.value)}
                 className="border rounded p-2 font-mono text-xs bg-purple-50"
-                rows={3}
+                rows={4}
                 placeholder="Container layout CSS..."
               />
 
@@ -422,7 +422,7 @@ export function LayoutDemo() {
                     setWrappingLayoutContainerCss(e.target.value)
                   }
                   placeholder="e.g., margin-top: 20px; margin-left: 30px; display: flex; gap: 15px; flex-wrap: wrap;"
-                  rows={3}
+                  rows={4}
                 />
 
                 {/* Group Card or Card (child of Wrapping Row) */}
@@ -449,7 +449,7 @@ export function LayoutDemo() {
                         ? "e.g., display: flex; gap: 10px; flex-wrap: wrap;"
                         : "e.g., align-self: flex-end; margin: 5px;"
                     }
-                    rows={3}
+                    rows={4}
                   />
 
                   {/* Distinct Field Values (child of Group Card) */}
@@ -465,7 +465,7 @@ export function LayoutDemo() {
                           setDistinctFieldValuesCss(e.target.value)
                         }
                         placeholder="e.g., margin-top: 30px; margin-left: 20px; display: flex; gap: 5px;"
-                        rows={3}
+                        rows={4}
                       />
 
                       {/* Card (child of Distinct Field Values) */}
@@ -480,7 +480,7 @@ export function LayoutDemo() {
                             setSecondLevelCardCss(e.target.value)
                           }
                           placeholder="CSS for nested cards..."
-                          rows={3}
+                          rows={4}
                         />
                       </div>
                     </div>
