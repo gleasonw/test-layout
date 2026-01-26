@@ -133,7 +133,7 @@ function buildTree(
 export const flexPresets = {
   flexRow: {
     slideCss:
-      "border: 2px solid black; display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; align-content: flex-start; width: 1920px; height: 1080px;",
+      "display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; align-content: flex-start; width: 1920px; height: 1080px;",
     topLevelCardCss: "",
     wrappingLayoutContainerCss:
       "padding: 10px; margin-left: 30px; margin-top: 20px; display: flex; padding: 20px; flex-direction: row; flex-wrap: wrap; gap: 10px; width: 1800px; height: 900px",
@@ -143,7 +143,7 @@ export const flexPresets = {
   },
   flexColumn: {
     slideCss:
-      "border: 2px solid black; display: flex; flex-direction: column; width: 800px; height: 700px; overflow: hidden;",
+      "display: flex; flex-direction: column; width: 800px; height: 700px; overflow: hidden;",
     topLevelCardCss: "",
     wrappingLayoutContainerCss:
       "display: flex; flex-direction: column; padding: 20px; gap: 15px; width: 700px; height: 650px; margin-left: 30px;",
